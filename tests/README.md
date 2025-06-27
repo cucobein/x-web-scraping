@@ -1,3 +1,214 @@
+# Testing Architecture
+
+This directory contains the comprehensive test suite for the X Web Scraping project, designed with a layered architecture that mirrors the main application structure.
+
+## Quick Start
+
+### 1. Setup Test Environment
+```bash
+# HTML fixtures are automatically managed with Git LFS
+# No manual setup needed - fixtures are version controlled
+git lfs pull  # If you need to download LFS files
+
+# Run all tests
+python -m pytest
+
+# Run with verbose output
+python -m pytest -v
+```
+
+### 2. Run Tests
+```bash
+# Run all tests
+python -m pytest
+
+# Run with verbose output
+python -m pytest -v
+
+# Run specific test file
+python -m pytest tests/unit/test_tweet_model.py
+
+# Run with coverage
+python -m pytest --cov=src
+```
+
+## Test Structure
+
+```
+tests/
+├── conftest.py              # Shared pytest fixtures
+├── fixtures/                # Test data and HTML snapshots
+│   ├── twitter/            # Real Twitter HTML fixtures (LFS tracked)
+│   ├── facebook/           # Future Facebook fixtures (LFS tracked)
+│   ├── instagram/          # Future Instagram fixtures (LFS tracked)
+│   └── youtube/            # Future YouTube fixtures (LFS tracked)
+├── integration/            # Integration tests (future)
+├── unit/                   # Unit tests for each layer
+│   ├── test_config_manager.py
+│   ├── test_tweet_model.py
+│   └── test_tweet_repository.py
+└── README.md              # This file
+```
+
+## Test Fixtures
+
+### HTML Fixtures with Git LFS
+The `fixtures/` directory contains real HTML snapshots from social media profiles, automatically tracked with Git LFS:
+
+- **Size**: ~500KB+ each (real HTML is large)
+- **Content**: Actual profile pages with real data
+- **Purpose**: Enable testing against realistic data without hitting live servers
+- **Git LFS**: All HTML files in `tests/fixtures/**/*.html` are tracked with LFS
+- **Scalable**: Pattern works for any platform (Twitter, Facebook, Instagram, YouTube, etc.)
+
+### Automatic LFS Management
+- **Pattern**: `tests/fixtures/**/*.html` covers all platforms and subdirectories
+- **No manual setup**: Fixtures are version controlled and automatically available
+- **Cross-platform**: Works for any social media platform you add
+- **Consistent**: Everyone gets the same test data
+
+### Manual Fixture Capture
+If you need to capture additional fixtures:
+
+```bash
+# Capture a specific profile
+python scripts/capture_fixtures.py nasa
+
+# Or use the async function directly
+python -c "
+import asyncio
+from scripts.capture_fixtures import capture_profile_html
+asyncio.run(capture_profile_html('username', 'output.html'))
+"
+```
+
+## Testing Layers
+
+### 1. Unit Tests (`tests/unit/`)
+Test individual components in isolation:
+
+- **`test_config_manager.py`**: Configuration loading and validation
+- **`test_tweet_model.py`**: Tweet data model and parsing
+- **`test_tweet_repository.py`**: Data persistence and retrieval
+
+### 2. Integration Tests (`tests/integration/`)
+Test component interactions (future development):
+
+- Browser manager + Twitter scraper integration
+- Full monitoring workflow
+- End-to-end scenarios
+
+### 3. Shared Fixtures (`conftest.py`)
+Common test utilities and fixtures:
+
+- HTML fixture loading
+- Temporary file management
+- Mock browser instances
+
+## Best Practices
+
+### 1. Use Real Data
+- Tests use actual HTML fixtures
+- Ensures realistic test scenarios
+- Catches real-world parsing issues
+
+### 2. Isolated Testing
+- Each test is independent
+- No shared state between tests
+- Clean setup/teardown
+
+### 3. Comprehensive Coverage
+- Test both success and error cases
+- Validate edge cases
+- Mock external dependencies appropriately
+
+### 4. Fast Execution
+- Unit tests run quickly
+- Use fixtures instead of live requests
+- Parallel test execution supported
+
+## Test Data Management
+
+### Fixture Lifecycle
+1. **Capture**: Use `scripts/capture_fixtures.py` to get fresh HTML
+2. **Test**: Tests load fixtures from `tests/fixtures/`
+3. **Update**: Re-capture when social media sites change their HTML structure
+
+### Fixture Maintenance
+- HTML fixtures may become outdated as sites update their structure
+- Monitor test failures that might indicate HTML structure changes
+- Re-capture fixtures when needed using the capture script
+
+### Git LFS Workflow
+```bash
+# Normal development workflow
+git pull                    # Gets latest code and LFS files
+python -m pytest           # Run tests with fixtures
+git add tests/fixtures/new_file.html  # New fixtures automatically tracked
+git commit -m "Add new fixtures"
+git push                   # Pushes code and LFS files
+```
+
+## Running Tests in CI/CD
+
+For continuous integration, Git LFS handles fixture management automatically:
+
+```yaml
+# Example GitHub Actions step
+- name: Setup Git LFS
+  run: |
+    git lfs install
+    git lfs pull
+
+- name: Run tests
+  run: python -m pytest
+```
+
+## Troubleshooting
+
+### Missing LFS Files
+If tests fail with "file not found" errors:
+
+```bash
+# Download LFS files
+git lfs pull
+
+# Or clone with LFS files
+git clone --recurse-submodules <repo-url>
+```
+
+### Outdated Fixtures
+If tests fail due to HTML structure changes:
+
+```bash
+# Remove old fixtures
+rm tests/fixtures/twitter/*.html
+
+# Re-capture fresh fixtures
+python scripts/capture_fixtures.py nasa GobCDMX MetroCDMX elonmusk
+
+# Commit the updated fixtures
+git add tests/fixtures/
+git commit -m "Update HTML fixtures"
+git push
+```
+
+### Network Issues
+If fixture capture fails:
+
+- Check internet connection
+- Verify social media sites are accessible
+- Try again later (sites may be rate limiting)
+
+## Future Enhancements
+
+- [ ] Integration tests for full workflow
+- [ ] Performance benchmarks
+- [ ] Visual regression testing
+- [ ] Automated fixture updates
+- [ ] Test data factories for edge cases
+- [ ] Multi-platform fixture support (Facebook, Instagram, YouTube)
+
 # Testing Documentation
 
 This directory contains the comprehensive test suite for the X Feed Monitor application.
