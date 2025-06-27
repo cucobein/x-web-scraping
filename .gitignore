@@ -214,9 +214,9 @@ $RECYCLE.BIN/
 # Project-specific files
 # Test artifacts and generated files
 # Note: HTML fixtures are tracked with Git LFS, so they're allowed
-tests/fixtures/twitter/*.html
-!tests/fixtures/twitter/*.html
-!tests/fixtures/twitter/.gitkeep
+tests/fixtures/**/*.html
+!tests/fixtures/**/*.html
+!tests/fixtures/**/.gitkeep
 
 # Monitor state files
 monitor_state.json

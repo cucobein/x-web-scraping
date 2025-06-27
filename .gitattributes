@@ -1,2 +1,4 @@
 # Git LFS configuration for large HTML fixtures
-tests/fixtures/twitter/*.html filter=lfs diff=lfs merge=lfs -text 
+# Track all HTML files in tests/fixtures and all subdirectories
+tests/fixtures/**/*.html filter=lfs diff=lfs merge=lfs -text 
+tests/fixtures/facebook/test_profile.html filter=lfs diff=lfs merge=lfs -text
