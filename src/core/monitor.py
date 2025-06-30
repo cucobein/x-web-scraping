@@ -20,7 +20,7 @@ class XMonitor:
         self.config_manager = ConfigManager(config_path)
         self.browser_manager = BrowserManager(self.config_manager.headless)
         self.twitter_scraper = TwitterScraper()
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(self.config_manager)
         self.tweet_repository = TweetRepository()
         
         # Internal state

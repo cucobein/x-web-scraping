@@ -1,0 +1,8 @@
+{
+    "code": 401,
+    "message": "Not Authorized",
+    "exception": "The apikey don't correct",
+    "requestDate": "2025-06-30T16:33:15.9197486-07:00",
+    "responseDate": "2025-06-30T16:33:15.9199214-07:00",
+    "data": null
+} 

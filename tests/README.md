@@ -39,14 +39,18 @@ tests/
 ├── conftest.py              # Shared pytest fixtures
 ├── fixtures/                # Test data and HTML snapshots
 │   ├── twitter/            # Real Twitter HTML fixtures (LFS tracked)
+│   ├── telegram/           # Telegram API response fixtures
 │   ├── facebook/           # Future Facebook fixtures (LFS tracked)
 │   ├── instagram/          # Future Instagram fixtures (LFS tracked)
 │   └── youtube/            # Future YouTube fixtures (LFS tracked)
-├── integration/            # Integration tests (future)
+├── integration/            # Integration tests
+│   └── test_telegram_integration.py
 ├── unit/                   # Unit tests for each layer
 │   ├── test_config_manager.py
 │   ├── test_tweet_model.py
-│   └── test_tweet_repository.py
+│   ├── test_tweet_repository.py
+│   ├── test_http_client.py
+│   └── test_telegram_notification_service.py
 └── README.md              # This file
 ```
 
@@ -60,6 +64,14 @@ The `fixtures/` directory contains real HTML snapshots from social media profile
 - **Purpose**: Enable testing against realistic data without hitting live servers
 - **Git LFS**: All HTML files in `tests/fixtures/**/*.html` are tracked with LFS
 - **Scalable**: Pattern works for any platform (Twitter, Facebook, Instagram, YouTube, etc.)
+
+### API Response Fixtures
+The `fixtures/telegram/` directory contains real API response data:
+
+- **Success Responses**: Real successful API responses for testing
+- **Error Responses**: Real error responses for testing error handling
+- **Request Examples**: Sample request formats for validation
+- **Purpose**: Test API integration without hitting live endpoints
 
 ### Automatic LFS Management
 - **Pattern**: `tests/fixtures/**/*.html` covers all platforms and subdirectories
@@ -90,10 +102,13 @@ Test individual components in isolation:
 - **`test_config_manager.py`**: Configuration loading and validation
 - **`test_tweet_model.py`**: Tweet data model and parsing
 - **`test_tweet_repository.py`**: Data persistence and retrieval
+- **`test_http_client.py`**: HTTP client functionality and retry logic
+- **`test_telegram_notification_service.py`**: Telegram notification service
 
 ### 2. Integration Tests (`tests/integration/`)
-Test component interactions (future development):
+Test component interactions:
 
+- **`test_telegram_integration.py`**: Full flow from tweet detection to Telegram notification
 - Browser manager + Twitter scraper integration
 - Full monitoring workflow
 - End-to-end scenarios

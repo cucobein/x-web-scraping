@@ -35,6 +35,7 @@ src/
 
 **Components:**
 - `tweet.py`: Tweet data model with validation and serialization
+- `telegram_message.py`: Telegram request/response data models
 
 **Responsibilities:**
 - Define data structures
@@ -49,6 +50,8 @@ src/
 - `browser_manager.py`: Playwright browser lifecycle management
 - `twitter_scraper.py`: Twitter-specific scraping logic
 - `notification_service.py`: Notification delivery system
+- `telegram_notification_service.py`: Telegram-specific notification service
+- `http_client.py`: Reusable HTTP client for external APIs
 
 **Responsibilities:**
 - Manage external dependencies (browser, APIs)
@@ -123,6 +126,12 @@ Models ← Core ← Services ← Repositories
 2. Add platform-specific models in `models/`
 3. Update configuration schema
 4. Extend core monitoring logic
+
+### **Adding New Notification Methods**
+1. Create new notification service in `services/` (e.g., `slack_notification_service.py`)
+2. Add notification models in `models/`
+3. Update configuration schema
+4. Integrate with existing notification service
 
 ### **Adding New Features**
 1. Identify the appropriate layer

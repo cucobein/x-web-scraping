@@ -60,4 +60,22 @@ class ConfigManager:
     @property
     def accounts(self) -> List[str]:
         """Get list of accounts to monitor"""
-        return self.load().get("accounts", []) 
+        return self.load().get("accounts", [])
+    
+    @property
+    def telegram_endpoint(self) -> str:
+        """Get Telegram endpoint URL"""
+        telegram_config = self.load().get("telegram", {})
+        return telegram_config.get("endpoint", "")
+    
+    @property
+    def telegram_api_key(self) -> str:
+        """Get Telegram API key"""
+        telegram_config = self.load().get("telegram", {})
+        return telegram_config.get("api_key", "")
+    
+    @property
+    def telegram_enabled(self) -> bool:
+        """Check if Telegram notifications are enabled"""
+        telegram_config = self.load().get("telegram", {})
+        return bool(telegram_config.get("endpoint") and telegram_config.get("api_key")) 

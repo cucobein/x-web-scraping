@@ -25,6 +25,7 @@ x-web-scraping/
 
 - **API-Free**: No Twitter API required
 - **Multi-Account Monitoring**: Monitor multiple accounts simultaneously
+- **Telegram Notifications**: Real-time alerts via Telegram bot
 - **Configurable**: JSON-based configuration for accounts and settings
 - **State Persistence**: Saves and loads monitoring state
 - **CDMX Government Focus**: Pre-configured with Mexico City government accounts
@@ -93,7 +94,11 @@ Edit `config/config.json` to customize:
     "Bomberos_CDMX"
   ],
   "check_interval": 60,
-  "sample_size": 5
+  "sample_size": 5,
+  "telegram": {
+    "endpoint": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
+    "api_key": "your-api-key-here"
+  }
 }
 ```
 
@@ -102,6 +107,14 @@ Edit `config/config.json` to customize:
 - `check_interval`: Seconds between monitoring cycles (default: 60)
 - `sample_size`: Number of accounts to check per cycle (default: 5)
 - `headless`: Whether to run browser in headless mode (default: True)
+
+### Telegram Notifications
+
+Configure Telegram notifications in `config/config.json`:
+- `telegram.endpoint`: Telegram notification API endpoint
+- `telegram.api_key`: Your API key for authentication
+
+When enabled, the monitor will send real-time notifications to Telegram whenever new tweets are detected.
 
 ## 🏛️ CDMX Government Accounts
 
@@ -183,6 +196,7 @@ Feel free to extend this tool with:
 
 ## 📈 Future Roadmap
 
+- [x] **Telegram notifications**: Real-time alerts via Telegram bot
 - [ ] **Multi-platform support**: Facebook, Instagram, YouTube
 - [ ] **Advanced notifications**: Email, Slack, Discord
 - [ ] **Database integration**: PostgreSQL, MongoDB

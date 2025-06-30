@@ -1,0 +1,13 @@
+{
+  "check_interval": 30,
+  "sample_size": 2,
+  "headless": true,
+  "telegram": {
+    "endpoint": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
+    "api_key": "47827973-e134-4ec1-9b11-458d3cc72962"
+  },
+  "accounts": [
+    "nasa",
+    "elonmusk"
+  ]
+} 
