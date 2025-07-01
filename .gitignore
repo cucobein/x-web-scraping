@@ -259,3 +259,4 @@ dev_*
 /src/core/__pycache__/monitor.cpython-310.pyc
 /src/config/__pycache__/config_manager.cpython-310.pyc
 *.pyc
+/src/services/__pycache__/browser_manager.cpython-310.pyc
