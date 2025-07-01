@@ -10,8 +10,14 @@ from src.models.tweet import Tweet
 class TwitterScraper:
     """Handles Twitter/X scraping operations"""
     
-    def __init__(self):
-        pass
+    def __init__(self, page_timeout: int = 5000):
+        """
+        Initialize Twitter scraper
+        
+        Args:
+            page_timeout: Timeout for page operations in milliseconds
+        """
+        self.page_timeout = page_timeout
     
     async def get_latest_tweet(self, page: Page, username: str) -> Optional[Tweet]:
         """
@@ -29,7 +35,7 @@ class TwitterScraper:
             await page.wait_for_load_state("networkidle")
             
             # Wait for tweets to load
-            await page.wait_for_selector("article", timeout=15000)
+            await page.wait_for_selector("article", timeout=self.page_timeout)
             
             # Get all tweets and find the latest (first one that's not pinned)
             tweets = page.locator("article")

@@ -58,6 +58,11 @@ class ConfigManager:
         return self.load().get("headless", True)
     
     @property
+    def page_timeout(self) -> int:
+        """Get page timeout in milliseconds"""
+        return self.load().get("page_timeout", 5000)
+    
+    @property
     def accounts(self) -> List[str]:
         """Get list of accounts to monitor"""
         return self.load().get("accounts", [])

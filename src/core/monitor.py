@@ -19,7 +19,7 @@ class XMonitor:
         # Initialize all services
         self.config_manager = ConfigManager(config_path)
         self.browser_manager = BrowserManager(self.config_manager.headless)
-        self.twitter_scraper = TwitterScraper()
+        self.twitter_scraper = TwitterScraper(page_timeout=self.config_manager.page_timeout)
         self.notification_service = NotificationService(self.config_manager)
         self.tweet_repository = TweetRepository()
         
