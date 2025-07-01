@@ -36,62 +36,97 @@ class TwitterScraper:
             # Wait for page to load completely
             await page.wait_for_load_state("networkidle")
             
-            # Try multiple selectors for tweets
-            tweet_selectors = [
-                "article[data-testid='tweet']",
-                "article",
-                "[data-testid='tweet']"
-            ]
-            
-            tweets = None
-            for selector in tweet_selectors:
-                try:
-                    await page.wait_for_selector(selector, timeout=self.page_timeout)
-                    tweets = page.locator(selector)
-                    count = await tweets.count()
-                    if count > 0:
-                        break
-                except:
-                    continue
-            
-            if not tweets:
-                print(f"No tweets found for @{username}")
-                return None
-            
-            count = await tweets.count()
-            print(f"Found {count} tweets for @{username}")
-            
-            for i in range(count):
-                tweet = tweets.nth(i)
-                
-                # Check if this tweet is pinned (has pin icon)
-                try:
-                    pin_icon = tweet.locator('[data-testid="icon-pin"]')
-                    is_pinned = await pin_icon.count() > 0
-                    if is_pinned:
-                        continue  # Skip pinned tweets
-                except:
-                    pass
-                
-                # Extract content, timestamp, and URL
-                try:
-                    content, timestamp, url = await self._extract_tweet_data(tweet)
-                    if content and timestamp:
-                        return Tweet(
-                            username=username,
-                            content=content,
-                            timestamp=timestamp,
-                            url=url
-                        )
-                except Exception as e:
-                    print(f"Error extracting tweet data: {e}")
-                    continue
-            
-            return None
+            return await self._extract_latest_tweet_from_page(page, username)
             
         except Exception as e:
             print(f"Error with @{username}: {e}")
             return None
+    
+    async def get_latest_tweet_from_html(self, page: Page, username: str, html_content: str) -> Optional[Tweet]:
+        """
+        Get the latest tweet from pre-loaded HTML content (for testing)
+        
+        Args:
+            page: Playwright page object
+            username: Twitter username to scrape
+            html_content: HTML content to load into the page
+            
+        Returns:
+            Tweet object or None if failed
+        """
+        try:
+            # Set HTML content directly
+            await page.set_content(html_content)
+            
+            return await self._extract_latest_tweet_from_page(page, username)
+            
+        except Exception as e:
+            print(f"Error extracting tweet from HTML for @{username}: {e}")
+            return None
+    
+    async def _extract_latest_tweet_from_page(self, page: Page, username: str) -> Optional[Tweet]:
+        """
+        Extract the latest tweet from a loaded page
+        
+        Args:
+            page: Playwright page object with loaded content
+            username: Twitter username
+            
+        Returns:
+            Tweet object or None if failed
+        """
+        # Try multiple selectors for tweets
+        tweet_selectors = [
+            "article[data-testid='tweet']",
+            "article",
+            "[data-testid='tweet']"
+        ]
+        
+        tweets = None
+        for selector in tweet_selectors:
+            try:
+                await page.wait_for_selector(selector, timeout=self.page_timeout)
+                tweets = page.locator(selector)
+                count = await tweets.count()
+                if count > 0:
+                    break
+            except:
+                continue
+        
+        if not tweets:
+            print(f"No tweets found for @{username}")
+            return None
+        
+        count = await tweets.count()
+        print(f"Found {count} tweets for @{username}")
+        
+        for i in range(count):
+            tweet = tweets.nth(i)
+            
+            # Check if this tweet is pinned (has pin icon)
+            try:
+                pin_icon = tweet.locator('[data-testid="icon-pin"]')
+                is_pinned = await pin_icon.count() > 0
+                if is_pinned:
+                    continue  # Skip pinned tweets
+            except:
+                pass
+            
+            # Extract content, timestamp, and URL
+            try:
+                content, timestamp, url = await self._extract_tweet_data(tweet)
+                if content and timestamp:
+                    return Tweet(
+                        username=username,
+                        content=content,
+                        timestamp=timestamp,
+                        url=url
+                    )
+            except Exception as e:
+                print(f"Error extracting tweet data: {e}")
+                continue
+        
+        return None
     
     async def _extract_tweet_data(self, tweet_element) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract content, timestamp, and URL from tweet element"""

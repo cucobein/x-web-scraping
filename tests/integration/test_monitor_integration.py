@@ -1,5 +1,5 @@
 """
-Integration tests for Telegram notification flow - Real World Scenarios
+Integration tests for full monitoring workflow - Real World Scenarios
 """
 import pytest
 import json
@@ -8,8 +8,8 @@ from src.core.monitor import XMonitor
 from src.models.tweet import Tweet
 
 
-class TestTelegramIntegration:
-    """Test real-world scenarios for Telegram notification integration"""
+class TestMonitorIntegration:
+    """Test real-world scenarios for full monitoring workflow integration"""
     
     @pytest.fixture
     def monitor(self):

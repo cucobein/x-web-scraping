@@ -26,7 +26,7 @@ python -m pytest
 python -m pytest -v
 
 # Run specific test file
-python -m pytest tests/unit/test_tweet_model.py
+python -m pytest tests/unit/test_tweet_model_unit.py
 
 # Run with coverage
 python -m pytest --cov=src
@@ -39,31 +39,76 @@ tests/
 ├── conftest.py              # Shared pytest fixtures
 ├── fixtures/                # Test data and HTML snapshots
 │   ├── twitter/            # Real Twitter HTML fixtures (LFS tracked)
+│   │   ├── nasa_profile.html
+│   │   ├── elonmusk_profile.html
+│   │   ├── MetroCDMX_profile.html
+│   │   ├── GobCDMX_profile.html
+│   │   ├── no_posts_profile.html
+│   │   └── non_existing_user.html
 │   ├── telegram/           # Telegram API response fixtures
 │   ├── facebook/           # Future Facebook fixtures (LFS tracked)
 │   ├── instagram/          # Future Instagram fixtures (LFS tracked)
 │   └── youtube/            # Future YouTube fixtures (LFS tracked)
-├── integration/            # Integration tests
-│   └── test_telegram_integration.py
-├── unit/                   # Unit tests for each layer
-│   ├── test_config_manager.py
-│   ├── test_tweet_model.py
-│   ├── test_tweet_repository.py
-│   ├── test_http_client.py
-│   └── test_telegram_notification_service.py
+├── integration/            # Integration tests using real fixtures
+│   └── test_twitter_scraper_integration.py
+├── unit/                   # Unit tests for each layer (using mocks)
+│   ├── test_config_manager_unit.py
+│   ├── test_tweet_model_unit.py
+│   ├── test_tweet_repository_unit.py
+│   ├── test_http_client_unit.py
+│   ├── test_telegram_notification_service_unit.py
+│   └── test_twitter_scraper_unit.py
 └── README.md              # This file
 ```
+
+## Test Classification
+
+### Unit Tests (`tests/unit/`)
+**Purpose:** Test individual components in isolation using mocks
+**Naming Convention:** `test_<component>_unit.py`
+**Characteristics:**
+- Use mocks for external dependencies
+- Fast execution
+- Test specific functionality
+- No network calls or browser instances
+
+**Files:**
+- **`test_config_manager_unit.py`**: Configuration loading and validation
+- **`test_tweet_model_unit.py`**: Tweet data model and parsing
+- **`test_tweet_repository_unit.py`**: Data persistence and retrieval
+- **`test_http_client_unit.py`**: HTTP client functionality and retry logic
+- **`test_telegram_notification_service_unit.py`**: Telegram notification service
+- **`test_twitter_scraper_unit.py`**: Twitter scraper with mocked pages
+
+### Integration Tests (`tests/integration/`)
+**Purpose:** Test component interactions using real HTML fixtures
+**Naming Convention:** `test_<component>_integration.py`
+**Characteristics:**
+- Use real HTML fixtures (no network calls)
+- Test actual parsing logic
+- Use real browser instances
+- Test end-to-end scenarios
+
+**Files:**
+- **`test_twitter_scraper_integration.py`**: Twitter scraper with real HTML fixtures
 
 ## Test Fixtures
 
 ### HTML Fixtures with Git LFS
-The `fixtures/` directory contains real HTML snapshots from social media profiles, automatically tracked with Git LFS:
+The `fixtures/twitter/` directory contains real HTML snapshots from social media profiles:
 
 - **Size**: ~500KB+ each (real HTML is large)
 - **Content**: Actual profile pages with real data
 - **Purpose**: Enable testing against realistic data without hitting live servers
 - **Git LFS**: All HTML files in `tests/fixtures/**/*.html` are tracked with LFS
-- **Scalable**: Pattern works for any platform (Twitter, Facebook, Instagram, YouTube, etc.)
+
+### Twitter HTML Fixtures
+- **`nasa_profile.html`**: NASA profile with real tweets
+- **`elonmusk_profile.html`**: Elon Musk profile with real tweets
+- **`MetroCDMX_profile.html`**: MetroCDMX profile with real tweets
+- **`GobCDMX_profile.html`**: GobCDMX profile with real tweets
+- **`no_posts_profile.html`**: Profile with no tweets (for zero-to-new scenarios)
+- **`non_existing_user.html`**: 404 page for non-existing users
 
 ### API Response Fixtures
 The `fixtures/telegram/` directory contains real API response data:
@@ -71,88 +116,61 @@ The `fixtures/telegram/` directory contains real API response data:
 - **Success Responses**: Real successful API responses for testing
 - **Error Responses**: Real error responses for testing error handling
 - **Request Examples**: Sample request formats for validation
-- **Purpose**: Test API integration without hitting live endpoints
 
-### Automatic LFS Management
-- **Pattern**: `tests/fixtures/**/*.html` covers all platforms and subdirectories
-- **No manual setup**: Fixtures are version controlled and automatically available
-- **Cross-platform**: Works for any social media platform you add
-- **Consistent**: Everyone gets the same test data
+## Testing Scenarios
 
-### Manual Fixture Capture
-If you need to capture additional fixtures:
+### Integration Test Scenarios
+Our integration tests cover real-world monitoring scenarios:
 
-```bash
-# Capture a specific profile
-python scripts/capture_fixtures.py nasa
+1. **Normal Tweet Extraction**: Extract tweets from real profiles (NASA, Elon Musk)
+2. **Pinned Tweet Handling**: Skip pinned tweets and get latest actual tweet
+3. **Profile with No Posts**: Handle accounts that exist but have no tweets
+4. **Non-Existing User**: Handle 404 pages for invalid usernames
+5. **Unique ID Generation**: Verify tweet URLs are used as unique identifiers
 
-# Or use the async function directly
-python -c "
-import asyncio
-from scripts.capture_fixtures import capture_profile_html
-asyncio.run(capture_profile_html('username', 'output.html'))
-"
-```
+### Monitoring Workflow Scenarios
+These scenarios are tested in the unit tests:
 
-## Testing Layers
-
-### 1. Unit Tests (`tests/unit/`)
-Test individual components in isolation:
-
-- **`test_config_manager.py`**: Configuration loading and validation
-- **`test_tweet_model.py`**: Tweet data model and parsing
-- **`test_tweet_repository.py`**: Data persistence and retrieval
-- **`test_http_client.py`**: HTTP client functionality and retry logic
-- **`test_telegram_notification_service.py`**: Telegram notification service
-
-### 2. Integration Tests (`tests/integration/`)
-Test component interactions:
-
-- **`test_telegram_integration.py`**: Full flow from tweet detection to Telegram notification
-- Browser manager + Twitter scraper integration
-- Full monitoring workflow
-- End-to-end scenarios
-
-### 3. Shared Fixtures (`conftest.py`)
-Common test utilities and fixtures:
-
-- HTML fixture loading
-- Temporary file management
-- Mock browser instances
+1. **First Time Monitoring**: Establish baseline without notification
+2. **New Tweet Detected**: Send notification when new content is found
+3. **No New Tweets**: Continue monitoring without notification
+4. **Zero to New Post**: Account goes from no posts to having posts
+5. **Post to Nothing**: Account goes from having posts to no posts
+6. **Telegram API Failure**: System continues monitoring despite notification failures
 
 ## Best Practices
 
 ### 1. Use Real Data
-- Tests use actual HTML fixtures
+- Integration tests use actual HTML fixtures
 - Ensures realistic test scenarios
 - Catches real-world parsing issues
 
-### 2. Isolated Testing
-- Each test is independent
-- No shared state between tests
-- Clean setup/teardown
+### 2. Proper Test Classification
+- **Unit tests**: Use mocks, test specific functionality
+- **Integration tests**: Use real fixtures, test component interactions
+- **No hybrid tests**: Each test file has a clear purpose
 
-### 3. Comprehensive Coverage
+### 3. Fast Execution
+- Unit tests run quickly with mocks
+- Integration tests use offline fixtures
+- Parallel test execution supported
+
+### 4. Comprehensive Coverage
 - Test both success and error cases
 - Validate edge cases
-- Mock external dependencies appropriately
-
-### 4. Fast Execution
-- Unit tests run quickly
-- Use fixtures instead of live requests
-- Parallel test execution supported
+- Test real-world monitoring scenarios
 
 ## Test Data Management
 
 ### Fixture Lifecycle
-1. **Capture**: Use `scripts/capture_fixtures.py` to get fresh HTML
+1. **Capture**: Use browser to save real HTML pages
 2. **Test**: Tests load fixtures from `tests/fixtures/`
 3. **Update**: Re-capture when social media sites change their HTML structure
 
 ### Fixture Maintenance
 - HTML fixtures may become outdated as sites update their structure
 - Monitor test failures that might indicate HTML structure changes
-- Re-capture fixtures when needed using the capture script
+- Re-capture fixtures when needed
 
 ### Git LFS Workflow
 ```bash
@@ -196,24 +214,15 @@ git clone --recurse-submodules <repo-url>
 If tests fail due to HTML structure changes:
 
 ```bash
-# Remove old fixtures
-rm tests/fixtures/twitter/*.html
-
-# Re-capture fresh fixtures
-python scripts/capture_fixtures.py nasa GobCDMX MetroCDMX elonmusk
-
-# Commit the updated fixtures
-git add tests/fixtures/
-git commit -m "Update HTML fixtures"
-git push
+# Re-capture fixtures using browser
+# Save as HTML only (not complete webpage)
+# Place in appropriate fixtures directory
 ```
 
-### Network Issues
-If fixture capture fails:
-
-- Check internet connection
-- Verify social media sites are accessible
-- Try again later (sites may be rate limiting)
+### Test Performance
+- Integration tests with browser instances are slower
+- Unit tests with mocks are fast
+- Use `-k` flag to run specific tests during development
 
 ## Future Enhancements
 
