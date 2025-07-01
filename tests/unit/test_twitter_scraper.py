@@ -262,4 +262,4 @@ class TestTwitterScraper:
 
         assert content == "Test tweet content"
         assert timestamp == "2025-01-27T12:00:00.000Z"
-        assert url == "https://x.com/nasa/status/123456789"  # Should be converted to full URL 
+        assert url == "https://x.com/nasa/status/123456789"  # Should be converted to full URL

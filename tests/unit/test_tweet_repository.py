@@ -154,6 +154,27 @@ class TestTweetRepository:
         last_id = self.repository.get_last_tweet_id("testuser")
         assert last_id == tweet.unique_id
         
-        # URL should NOT be part of the unique ID (it's based on content + timestamp)
-        assert "123456789" not in last_id
-        assert "Tweet with URL" in last_id 
+        # URL should be the unique ID (since we changed the logic)
+        assert last_id == "https://x.com/testuser/status/123456789"
+        assert "123456789" in last_id
+    
+    def test_unique_id_logic(self):
+        """Test the unique_id generation logic"""
+        # Tweet with URL - should use URL as unique_id
+        tweet_with_url = Tweet(
+            username="testuser",
+            content="Tweet with URL",
+            timestamp="2024-01-15T10:30:00Z",
+            url="https://x.com/testuser/status/123456789"
+        )
+        assert tweet_with_url.unique_id == "https://x.com/testuser/status/123456789"
+        
+        # Tweet without URL - should fallback to content + timestamp
+        tweet_without_url = Tweet(
+            username="testuser",
+            content="Tweet without URL",
+            timestamp="2024-01-15T10:30:00Z",
+            url=None
+        )
+        expected_fallback_id = "Tweet without URL_2024-01-15T10:30:00Z"
+        assert tweet_without_url.unique_id == expected_fallback_id

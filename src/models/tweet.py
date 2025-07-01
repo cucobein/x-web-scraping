@@ -26,7 +26,13 @@ class Tweet:
     @property
     def unique_id(self) -> str:
         """Generate unique identifier for this tweet"""
-        return f"{self.content[:50]}_{self.timestamp}"
+        if self.url:
+            # Extract tweet ID from URL: https://x.com/username/status/123456789
+            # The status number is the unique tweet ID
+            return self.url
+        else:
+            # Fallback to content + timestamp if no URL available
+            return f"{self.content[:50]}_{self.timestamp}"
     
     def to_dict(self) -> dict:
         """Convert to dictionary"""
