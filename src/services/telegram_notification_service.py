@@ -31,13 +31,20 @@ class TelegramNotificationService:
             
         Returns:
             TelegramMessageResponse with result
+            
+        Raises:
+            ValueError: If tweet has no URL
         """
+        # Validate that tweet has a URL
+        if not tweet.url:
+            raise ValueError("Cannot send notification for tweet without URL")
+            
         try:
             # Create message request
             message_text = self._format_tweet_message(tweet)
             request = TelegramMessageRequest(
                 message=message_text,
-                url=tweet.url or f"https://x.com/{tweet.username}"
+                url=tweet.url
             )
             
             # Prepare headers with API key

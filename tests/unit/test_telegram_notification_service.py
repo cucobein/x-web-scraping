@@ -67,8 +67,9 @@ class TestTelegramNotificationService:
         assert len(message) < len(long_content) + 100  # Account for formatting
         assert "..." in message
     
-    def test_format_tweet_message_no_url(self, telegram_service):
-        """Test message formatting when tweet has no URL"""
+    @pytest.mark.asyncio
+    async def test_send_tweet_notification_no_url_raises_error(self, telegram_service):
+        """Test that sending notification for tweet without URL raises error"""
         tweet_no_url = Tweet(
             username="test",
             content="Test tweet without URL",
@@ -76,10 +77,8 @@ class TestTelegramNotificationService:
             url=None
         )
         
-        message = telegram_service._format_tweet_message(tweet_no_url)
-        
-        # Should use fallback URL
-        assert "https://x.com/test" in message
+        with pytest.raises(ValueError, match="Cannot send notification for tweet without URL"):
+            await telegram_service.send_tweet_notification(tweet_no_url)
     
     @pytest.mark.asyncio
     async def test_send_tweet_notification_success(self, telegram_service, sample_tweet, success_response_data):
