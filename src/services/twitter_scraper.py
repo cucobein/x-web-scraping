@@ -32,14 +32,34 @@ class TwitterScraper:
         """
         try:
             await page.goto(f"https://x.com/{username}", timeout=60000)
+            
+            # Wait for page to load completely
             await page.wait_for_load_state("networkidle")
             
-            # Wait for tweets to load
-            await page.wait_for_selector("article", timeout=self.page_timeout)
+            # Try multiple selectors for tweets
+            tweet_selectors = [
+                "article[data-testid='tweet']",
+                "article",
+                "[data-testid='tweet']"
+            ]
             
-            # Get all tweets and find the latest (first one that's not pinned)
-            tweets = page.locator("article")
+            tweets = None
+            for selector in tweet_selectors:
+                try:
+                    await page.wait_for_selector(selector, timeout=self.page_timeout)
+                    tweets = page.locator(selector)
+                    count = await tweets.count()
+                    if count > 0:
+                        break
+                except:
+                    continue
+            
+            if not tweets:
+                print(f"No tweets found for @{username}")
+                return None
+            
             count = await tweets.count()
+            print(f"Found {count} tweets for @{username}")
             
             for i in range(count):
                 tweet = tweets.nth(i)
@@ -76,11 +96,25 @@ class TwitterScraper:
     async def _extract_tweet_data(self, tweet_element) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract content, timestamp, and URL from tweet element"""
         try:
-            # Get tweet text
-            text_elements = tweet_element.locator('[data-testid="tweetText"]')
-            if await text_elements.count() > 0:
-                content = await text_elements.first.inner_text()
-            else:
+            # Get tweet text - try multiple selectors
+            text_selectors = [
+                '[data-testid="tweetText"]',
+                '[data-testid="tweet"] span',
+                'span'
+            ]
+            
+            content = None
+            for selector in text_selectors:
+                try:
+                    text_elements = tweet_element.locator(selector)
+                    if await text_elements.count() > 0:
+                        content = await text_elements.first.inner_text()
+                        if content and len(content.strip()) > 0:
+                            break
+                except:
+                    continue
+            
+            if not content:
                 # Fallback: get all text from tweet
                 content = await tweet_element.inner_text()
             
