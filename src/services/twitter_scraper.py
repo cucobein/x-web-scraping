@@ -43,7 +43,10 @@ class TwitterScraper:
                 browser_manager.record_request("x.com")
             
             # Wait for page to load completely
-            await page.wait_for_load_state("networkidle")
+            await page.wait_for_load_state("domcontentloaded")
+            
+            # Add short wait for dynamic content
+            await page.wait_for_timeout(5000)
             
             return await self._extract_latest_tweet_from_page(page, username)
             

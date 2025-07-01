@@ -2,6 +2,8 @@
 Browser management service with anti-detection features
 """
 from typing import Optional
+import json
+from pathlib import Path
 from playwright.async_api import async_playwright, Browser, BrowserContext
 from src.services.rate_limiter import RateLimiter, RateLimitConfig
 
@@ -35,6 +37,13 @@ class BrowserManager:
             user_agent=user_agent,
             viewport={"width": 1280, "height": 800}
         )
+        
+        # Inject Twitter cookies
+        cookies = self._load_twitter_cookies()
+        if cookies:
+            await self.context.add_cookies(cookies)
+            print("🔐 Loaded Twitter cookies for authenticated session")
+        
         return self.context
     
     async def clear_cache(self):
@@ -84,4 +93,20 @@ class BrowserManager:
         Returns:
             Dictionary with rate limiting statistics
         """
-        return self.rate_limiter.get_stats(domain) 
+        return self.rate_limiter.get_stats(domain)
+    
+    def _load_twitter_cookies(self) -> list:
+        """Load Twitter cookies from config file"""
+        try:
+            cookie_file = Path("config/twitter_cookies.json")
+            if not cookie_file.exists():
+                return []
+            
+            with open(cookie_file, 'r') as f:
+                cookie_data = json.load(f)
+            
+            return cookie_data
+            
+        except Exception as e:
+            print(f"❌ Error loading Twitter cookies: {e}")
+            return [] 
