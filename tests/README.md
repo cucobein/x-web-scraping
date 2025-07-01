@@ -50,13 +50,13 @@ tests/
 │   ├── instagram/          # Future Instagram fixtures (LFS tracked)
 │   └── youtube/            # Future YouTube fixtures (LFS tracked)
 ├── integration/            # Integration tests using real fixtures
-│   └── test_twitter_scraper_integration.py
+│   ├── test_twitter_scraper_integration.py
+│   └── test_monitor_integration.py
 ├── unit/                   # Unit tests for each layer (using mocks)
 │   ├── test_config_manager_unit.py
 │   ├── test_tweet_model_unit.py
 │   ├── test_tweet_repository_unit.py
 │   ├── test_http_client_unit.py
-│   ├── test_telegram_notification_service_unit.py
 │   └── test_twitter_scraper_unit.py
 └── README.md              # This file
 ```
@@ -77,20 +77,20 @@ tests/
 - **`test_tweet_model_unit.py`**: Tweet data model and parsing
 - **`test_tweet_repository_unit.py`**: Data persistence and retrieval
 - **`test_http_client_unit.py`**: HTTP client functionality and retry logic
-- **`test_telegram_notification_service_unit.py`**: Telegram notification service
 - **`test_twitter_scraper_unit.py`**: Twitter scraper with mocked pages
 
 ### Integration Tests (`tests/integration/`)
 **Purpose:** Test component interactions using real HTML fixtures
 **Naming Convention:** `test_<component>_integration.py`
 **Characteristics:**
-- Use real HTML fixtures (no network calls)
-- Test actual parsing logic
-- Use real browser instances
-- Test end-to-end scenarios
+- Use real fixtures (HTML/JSON) as the center and focus
+- Test component interactions and workflows
+- May use mocks for external dependencies (out of necessity)
+- Test end-to-end scenarios with real data
 
 **Files:**
 - **`test_twitter_scraper_integration.py`**: Twitter scraper with real HTML fixtures
+- **`test_monitor_integration.py`**: Full monitoring workflow with real JSON fixtures
 
 ## Test Fixtures
 
@@ -127,9 +127,11 @@ Our integration tests cover real-world monitoring scenarios:
 3. **Profile with No Posts**: Handle accounts that exist but have no tweets
 4. **Non-Existing User**: Handle 404 pages for invalid usernames
 5. **Unique ID Generation**: Verify tweet URLs are used as unique identifiers
+6. **Full Monitoring Workflow**: First time monitoring, new tweet detection, API failures
+7. **Component Integration**: How monitor orchestrates scraper, notification, and repository
 
 ### Monitoring Workflow Scenarios
-These scenarios are tested in the unit tests:
+These scenarios are tested in the integration tests:
 
 1. **First Time Monitoring**: Establish baseline without notification
 2. **New Tweet Detected**: Send notification when new content is found
