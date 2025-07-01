@@ -19,19 +19,28 @@ class TwitterScraper:
         """
         self.page_timeout = page_timeout
     
-    async def get_latest_tweet(self, page: Page, username: str) -> Optional[Tweet]:
+    async def get_latest_tweet(self, page: Page, username: str, browser_manager=None) -> Optional[Tweet]:
         """
         Get the latest tweet from a user's profile
         
         Args:
             page: Playwright page object
             username: Twitter username to scrape
+            browser_manager: Optional browser manager for rate limiting
             
         Returns:
             Tweet object or None if failed
         """
         try:
+            # Apply rate limiting if browser manager is provided
+            if browser_manager:
+                await browser_manager.wait_for_rate_limit("x.com")
+            
             await page.goto(f"https://x.com/{username}", timeout=self.page_timeout)
+            
+            # Record the request for rate limiting
+            if browser_manager:
+                browser_manager.record_request("x.com")
             
             # Wait for page to load completely
             await page.wait_for_load_state("networkidle")

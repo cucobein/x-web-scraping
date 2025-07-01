@@ -53,7 +53,7 @@ class XMonitor:
         
         page = await context.new_page()
         try:
-            tweet = await self.twitter_scraper.get_latest_tweet(page, username)
+            tweet = await self.twitter_scraper.get_latest_tweet(page, username, self.browser_manager)
             
             if not tweet:
                 await self.notification_service.notify_error(username, "Could not fetch tweet")

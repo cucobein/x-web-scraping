@@ -47,17 +47,20 @@ src/
 **Purpose**: External interactions and business logic
 
 **Components:**
-- `browser_manager.py`: Playwright browser lifecycle management
-- `twitter_scraper.py`: Twitter-specific scraping logic
-- `notification_service.py`: Notification delivery system
-- `telegram_notification_service.py`: Telegram-specific notification service
+- `browser_manager.py`: Playwright browser lifecycle management with rate limiting
+- `twitter_scraper.py`: Twitter-specific scraping logic with anti-detection
+- `notification_service.py`: Notification delivery system with retry logic
+- `telegram_notification_service.py`: Telegram-specific notification service with exponential backoff
 - `http_client.py`: Reusable HTTP client for external APIs
+- `rate_limiter.py`: Domain-specific rate limiting and anti-detection measures
 
 **Responsibilities:**
 - Manage external dependencies (browser, APIs)
 - Implement platform-specific logic
 - Handle communication with external services
 - Provide business logic implementation
+- Implement anti-detection measures (rate limiting, user agent rotation)
+- Manage request timing and delays
 
 ### **Repository Layer** (`repositories/`)
 **Purpose**: Data persistence and state management

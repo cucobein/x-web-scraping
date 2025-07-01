@@ -78,6 +78,10 @@ tests/
 - **`test_tweet_repository_unit.py`**: Data persistence and retrieval
 - **`test_http_client_unit.py`**: HTTP client functionality and retry logic
 - **`test_twitter_scraper_unit.py`**: Twitter scraper with mocked pages
+- **`test_telegram_notification_service_unit.py`**: Telegram notifications with retry logic
+- **`test_rate_limiter_unit.py`**: Rate limiting and anti-detection functionality
+- **`test_notification_service_unit.py`**: Notification service initialization and configuration
+- **`test_monitor_unit.py`**: Monitor class behavior with mocked dependencies
 
 ### Integration Tests (`tests/integration/`)
 **Purpose:** Test component interactions using real HTML fixtures
@@ -89,8 +93,8 @@ tests/
 - Test end-to-end scenarios with real data
 
 **Files:**
-- **`test_twitter_scraper_integration.py`**: Twitter scraper with real HTML fixtures
-- **`test_monitor_integration.py`**: Full monitoring workflow with real JSON fixtures
+- **`test_twitter_scraper_integration.py`**: Twitter scraper with real HTML fixtures and fast extraction
+- **`test_monitor_integration.py`**: Full monitoring workflow with real HTML fixtures, rate limiting integration, and Telegram retry logic
 
 ## Test Fixtures
 
@@ -129,6 +133,9 @@ Our integration tests cover real-world monitoring scenarios:
 5. **Unique ID Generation**: Verify tweet URLs are used as unique identifiers
 6. **Full Monitoring Workflow**: First time monitoring, new tweet detection, API failures
 7. **Component Integration**: How monitor orchestrates scraper, notification, and repository
+8. **Rate Limiting Integration**: Test rate limiting behavior with multiple accounts
+9. **Telegram Retry Logic**: Test notification retry with exponential backoff
+10. **Fast HTML Extraction**: Optimized extraction methods for test performance
 
 ### Monitoring Workflow Scenarios
 These scenarios are tested in the integration tests:
@@ -139,6 +146,8 @@ These scenarios are tested in the integration tests:
 4. **Zero to New Post**: Account goes from no posts to having posts
 5. **Post to Nothing**: Account goes from having posts to no posts
 6. **Telegram API Failure**: System continues monitoring despite notification failures
+7. **Rate Limiting Behavior**: Domain-specific request tracking and delays
+8. **Multiple Account Processing**: Rate limiting across multiple accounts
 
 ## Best Practices
 
@@ -164,10 +173,12 @@ These scenarios are tested in the integration tests:
 - Test real-world monitoring scenarios
 
 ### 5. Performance Optimization
-- **Fast HTML Processing**: Integration tests use optimized extraction methods
+- **Fast HTML Processing**: Integration tests use optimized extraction methods (`get_latest_tweet_from_html`)
 - **Reduced Timeouts**: Test-specific timeouts (500ms vs 5000ms) for faster execution
 - **Browser Efficiency**: Tests complete in seconds, not minutes
 - **Real-world Performance**: Production scraping still uses full timeouts for reliability
+- **Rate Limiter Testing**: Async tests with mocked `asyncio.sleep` for fast execution
+- **Shared Browser Manager**: Efficient resource usage across integration tests
 
 ## Test Data Management
 
@@ -190,6 +201,28 @@ git add tests/fixtures/new_file.html  # New fixtures automatically tracked
 git commit -m "Add new fixtures"
 git push                   # Pushes code and LFS files
 ```
+
+## Recent Improvements
+
+### Test Organization Cleanup (Latest)
+- **Proper Separation**: Moved unit tests from integration files to dedicated unit test files
+- **New Unit Test Files**: 
+  - `test_notification_service_unit.py`: Tests NotificationService initialization
+  - `test_monitor_unit.py`: Tests Monitor class behavior with mocked dependencies
+- **Clean Integration Tests**: Removed commented-out unit tests from integration files
+- **Clear Boundaries**: Unit tests use mocks, integration tests use real fixtures
+
+### Performance Enhancements
+- **Fast HTML Extraction**: Integration tests use `get_latest_tweet_from_html` method
+- **Optimized Timeouts**: Test-specific timeouts for faster execution
+- **Shared Resources**: Browser manager fixtures shared across integration tests
+- **Async Rate Limiter Tests**: Mocked `asyncio.sleep` for fast rate limiter testing
+
+### New Features Tested
+- **Rate Limiting**: Comprehensive unit and integration tests for anti-detection
+- **Telegram Retry Logic**: Tests for exponential backoff and retry exhaustion
+- **Browser Manager Integration**: Tests for rate limiting integration
+- **User Agent Rotation**: Tests for anti-detection measures
 
 ## Running Tests in CI/CD
 

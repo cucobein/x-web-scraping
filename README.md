@@ -25,7 +25,9 @@ x-web-scraping/
 
 - **API-Free**: No Twitter API required
 - **Multi-Account Monitoring**: Monitor multiple accounts simultaneously
-- **Telegram Notifications**: Real-time alerts via Telegram bot
+- **Telegram Notifications**: Real-time alerts via Telegram bot with retry logic
+- **Anti-Detection**: Rate limiting, user agent rotation, and random delays
+- **Browser Management**: Intelligent browser lifecycle management with Playwright
 - **Configurable**: JSON-based configuration for accounts and settings
 - **State Persistence**: Saves and loads monitoring state
 - **CDMX Government Focus**: Pre-configured with Mexico City government accounts
@@ -114,7 +116,18 @@ Configure Telegram notifications in `config/config.json`:
 - `telegram.endpoint`: Telegram notification API endpoint
 - `telegram.api_key`: Your API key for authentication
 
-When enabled, the monitor will send real-time notifications to Telegram whenever new tweets are detected.
+When enabled, the monitor will send real-time notifications to Telegram whenever new tweets are detected. The notification service includes:
+- **Retry Logic**: Exponential backoff for failed API calls
+- **Error Handling**: Graceful handling of API failures
+- **Message Formatting**: Rich formatting with tweet content and metadata
+
+### Anti-Detection Features
+
+The monitor includes several anti-detection measures:
+- **Rate Limiting**: Domain-specific request tracking and delays
+- **User Agent Rotation**: Random browser user agents to avoid detection
+- **Random Delays**: Unpredictable timing between requests
+- **Request Tracking**: Per-domain request counting and limiting
 
 ## 🏛️ CDMX Government Accounts
 
@@ -168,14 +181,17 @@ The monitor automatically saves its state to `monitor_state.json` when stopped. 
 - Timestamp of last update
 - Total number of tracked users
 
-## 🛡️ Error Handling
+## 🛡️ Error Handling & Anti-Detection
 
-The monitor includes robust error handling:
-- Network timeouts and retries
-- Page load failures
-- Account access issues
-- Graceful shutdown on Ctrl+C
-- Comprehensive logging
+The monitor includes robust error handling and anti-detection measures:
+- **Network timeouts and retries**: Exponential backoff for failed requests
+- **Page load failures**: Graceful handling of network issues
+- **Account access issues**: Proper error reporting and recovery
+- **Rate limiting**: Domain-specific request tracking and delays
+- **User agent rotation**: Random browser user agents to avoid detection
+- **Random delays**: Unpredictable timing between requests
+- **Graceful shutdown**: Clean shutdown on Ctrl+C
+- **Comprehensive logging**: Detailed error reporting and monitoring
 
 ## ⚖️ Legal Considerations
 
@@ -196,8 +212,13 @@ Feel free to extend this tool with:
 
 ## 📈 Future Roadmap
 
-- [x] **Telegram notifications**: Real-time alerts via Telegram bot
+- [x] **Telegram notifications**: Real-time alerts via Telegram bot with retry logic
+- [x] **Anti-detection measures**: Rate limiting, user agent rotation, random delays
+- [x] **Browser management**: Intelligent browser lifecycle management
+- [x] **Comprehensive testing**: Unit and integration tests with real HTML fixtures
 - [ ] **Multi-platform support**: Facebook, Instagram, YouTube
+- [ ] **Database storage**: Persistent storage for monitoring history
+- [ ] **Web interface**: Dashboard for monitoring status
 - [ ] **Advanced notifications**: Email, Slack, Discord
 - [ ] **Database integration**: PostgreSQL, MongoDB
 - [ ] **Web dashboard**: Real-time monitoring interface
