@@ -46,6 +46,10 @@ class TwitterScraper:
         """
         Get the latest tweet from pre-loaded HTML content (for testing)
         
+        This method uses a fast extraction approach with shorter timeouts since the HTML
+        content is already loaded and doesn't require network requests. This significantly
+        improves test performance, especially for fixtures that contain no tweets.
+        
         Args:
             page: Playwright page object
             username: Twitter username to scrape
@@ -58,7 +62,8 @@ class TwitterScraper:
             # Set HTML content directly
             await page.set_content(html_content)
             
-            return await self._extract_latest_tweet_from_page(page, username)
+            # Use shorter timeout for HTML content (faster for tests)
+            return await self._extract_latest_tweet_from_page_fast(page, username)
             
         except Exception as e:
             print(f"Error extracting tweet from HTML for @{username}: {e}")
@@ -86,6 +91,80 @@ class TwitterScraper:
         for selector in tweet_selectors:
             try:
                 await page.wait_for_selector(selector, timeout=self.page_timeout)
+                tweets = page.locator(selector)
+                count = await tweets.count()
+                if count > 0:
+                    break
+            except:
+                continue
+        
+        if not tweets:
+            print(f"No tweets found for @{username}")
+            return None
+        
+        count = await tweets.count()
+        print(f"Found {count} tweets for @{username}")
+        
+        for i in range(count):
+            tweet = tweets.nth(i)
+            
+            # Check if this tweet is pinned (has pin icon)
+            try:
+                pin_icon = tweet.locator('[data-testid="icon-pin"]')
+                is_pinned = await pin_icon.count() > 0
+                if is_pinned:
+                    continue  # Skip pinned tweets
+            except:
+                pass
+            
+            # Extract content, timestamp, and URL
+            try:
+                content, timestamp, url = await self._extract_tweet_data(tweet)
+                if content and timestamp:
+                    return Tweet(
+                        username=username,
+                        content=content,
+                        timestamp=timestamp,
+                        url=url
+                    )
+            except Exception as e:
+                print(f"Error extracting tweet data: {e}")
+                continue
+        
+        return None
+    
+    async def _extract_latest_tweet_from_page_fast(self, page: Page, username: str) -> Optional[Tweet]:
+        """
+        Extract the latest tweet from a loaded page with fast timeout (for testing)
+        
+        This method is optimized for testing scenarios where HTML content is pre-loaded.
+        It uses shorter timeouts (500ms vs 5000ms) because:
+        1. No network requests are needed (content is already loaded)
+        2. DOM elements are immediately available
+        3. Significantly improves test performance for edge cases (no tweets, errors)
+        
+        Performance improvement: Reduces wait time from 15 seconds to 1.5 seconds
+        when no tweets are found (3 selectors × 500ms vs 3 selectors × 5000ms).
+        
+        Args:
+            page: Playwright page object with loaded content
+            username: Twitter username
+            
+        Returns:
+            Tweet object or None if failed
+        """
+        # Try multiple selectors for tweets with shorter timeout
+        tweet_selectors = [
+            "article[data-testid='tweet']",
+            "article",
+            "[data-testid='tweet']"
+        ]
+        
+        tweets = None
+        for selector in tweet_selectors:
+            try:
+                # Use much shorter timeout for tests (500ms instead of 5000ms)
+                await page.wait_for_selector(selector, timeout=500)
                 tweets = page.locator(selector)
                 count = await tweets.count()
                 if count > 0:

@@ -154,13 +154,20 @@ These scenarios are tested in the integration tests:
 
 ### 3. Fast Execution
 - Unit tests run quickly with mocks
-- Integration tests use offline fixtures
+- Integration tests use offline fixtures with optimized timeouts
+- **Performance**: Edge case tests (no tweets, errors) complete in ~2 seconds vs 15+ seconds
 - Parallel test execution supported
 
 ### 4. Comprehensive Coverage
 - Test both success and error cases
 - Validate edge cases
 - Test real-world monitoring scenarios
+
+### 5. Performance Optimization
+- **Fast HTML Processing**: Integration tests use optimized extraction methods
+- **Reduced Timeouts**: Test-specific timeouts (500ms vs 5000ms) for faster execution
+- **Browser Efficiency**: Tests complete in seconds, not minutes
+- **Real-world Performance**: Production scraping still uses full timeouts for reliability
 
 ## Test Data Management
 

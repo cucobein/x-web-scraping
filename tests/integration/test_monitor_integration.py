@@ -147,8 +147,8 @@ class TestMonitorIntegration:
                     
                     # Should still succeed (Telegram failure doesn't break monitoring)
                     assert result is True
-                    # Should attempt Telegram notification
-                    mock_post.assert_called_once()
+                    # Should attempt Telegram notification with retries (3 attempts)
+                    assert mock_post.call_count == 3
                     # Should still update to new tweet
                     assert monitor.tweet_repository.get_last_tweet_id("nasa") == new_tweet.unique_id
     
@@ -195,4 +195,68 @@ class TestMonitorIntegration:
         
         # Test with Telegram disabled
         service_without_telegram = NotificationService(None)
-        assert service_without_telegram.telegram_service is None 
+        assert service_without_telegram.telegram_service is None
+    
+    @pytest.mark.asyncio
+    async def test_telegram_retry_success_after_failure(self, monitor, baseline_tweet, new_tweet, success_response_data):
+        """Scenario: Telegram API succeeds after initial failure - should retry and succeed"""
+        # Setup: Account already has baseline tweet
+        monitor.tweet_repository.save_last_tweet("nasa", baseline_tweet)
+        
+        # Mock HTTP client to fail twice, then succeed
+        mock_post = AsyncMock()
+        mock_post.side_effect = [
+            (500, {"error": "Internal Server Error"}),  # First attempt fails
+            (503, {"error": "Service Unavailable"}),    # Second attempt fails
+            (200, success_response_data)                # Third attempt succeeds
+        ]
+        
+        with patch.object(monitor.twitter_scraper, 'get_latest_tweet', new=AsyncMock(return_value=new_tweet)):
+            with patch.object(monitor.notification_service.telegram_service.http_client, 'post_form_data', new=mock_post) as mock_post:
+                with patch.object(monitor.browser_manager, 'get_context') as mock_context:
+                    mock_page = AsyncMock()
+                    mock_context_instance = AsyncMock()
+                    mock_context_instance.new_page = AsyncMock(return_value=mock_page)
+                    mock_context.return_value = mock_context_instance
+                    
+                    # Should succeed after retries
+                    result = await monitor.process_account("nasa")
+                    
+                    # Should succeed
+                    assert result is True
+                    # Should attempt Telegram notification 3 times (2 failures + 1 success)
+                    assert mock_post.call_count == 3
+                    # Should still update to new tweet
+                    assert monitor.tweet_repository.get_last_tweet_id("nasa") == new_tweet.unique_id
+    
+    @pytest.mark.asyncio
+    async def test_telegram_retry_exhausted_after_multiple_failures(self, monitor, baseline_tweet, new_tweet, error_response_data):
+        """Scenario: Telegram API fails all retry attempts - should continue monitoring"""
+        # Setup: Account already has baseline tweet
+        monitor.tweet_repository.save_last_tweet("nasa", baseline_tweet)
+        
+        # Mock HTTP client to fail all 3 attempts
+        mock_post = AsyncMock()
+        mock_post.side_effect = [
+            (500, {"error": "Internal Server Error"}),  # First attempt fails
+            (503, {"error": "Service Unavailable"}),    # Second attempt fails
+            (401, error_response_data)                  # Third attempt fails
+        ]
+        
+        with patch.object(monitor.twitter_scraper, 'get_latest_tweet', new=AsyncMock(return_value=new_tweet)):
+            with patch.object(monitor.notification_service.telegram_service.http_client, 'post_form_data', new=mock_post) as mock_post:
+                with patch.object(monitor.browser_manager, 'get_context') as mock_context:
+                    mock_page = AsyncMock()
+                    mock_context_instance = AsyncMock()
+                    mock_context_instance.new_page = AsyncMock(return_value=mock_page)
+                    mock_context.return_value = mock_context_instance
+                    
+                    # Should succeed even after all retries fail
+                    result = await monitor.process_account("nasa")
+                    
+                    # Should succeed (Telegram failure doesn't break monitoring)
+                    assert result is True
+                    # Should attempt Telegram notification 3 times (all failures)
+                    assert mock_post.call_count == 3
+                    # Should still update to new tweet
+                    assert monitor.tweet_repository.get_last_tweet_id("nasa") == new_tweet.unique_id 

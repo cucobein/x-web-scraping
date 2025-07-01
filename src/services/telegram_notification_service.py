@@ -1,10 +1,15 @@
 """
 Telegram notification service for sending tweet alerts
 """
+import logging
 from typing import Optional
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from src.services.http_client import HttpClient
 from src.models.telegram_message import TelegramMessageRequest, TelegramMessageResponse
 from src.models.tweet import Tweet
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class TelegramNotificationService:
@@ -21,6 +26,41 @@ class TelegramNotificationService:
         self.endpoint = endpoint
         self.api_key = api_key
         self.http_client = HttpClient()
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((Exception,)),
+        before_sleep=lambda retry_state: logger.warning(
+            f"Telegram API call failed (attempt {retry_state.attempt_number}/3): {retry_state.outcome.exception()}. "
+            f"Retrying in {retry_state.next_action.sleep} seconds..."
+        )
+    )
+    async def _send_telegram_request(self, request: TelegramMessageRequest, headers: dict) -> tuple[int, dict]:
+        """
+        Send request to Telegram API with retry logic
+        
+        Args:
+            request: Telegram message request
+            headers: Request headers
+            
+        Returns:
+            Tuple of (status_code, response_data)
+            
+        Raises:
+            Exception: If all retry attempts fail
+        """
+        status_code, response_data = await self.http_client.post_form_data(
+            url=self.endpoint,
+            data=request.to_form_data(),
+            headers=headers
+        )
+        
+        # Consider 4xx and 5xx status codes as failures for retry
+        if status_code >= 400:
+            raise Exception(f"HTTP {status_code}: {response_data}")
+        
+        return status_code, response_data
     
     async def send_tweet_notification(self, tweet: Tweet) -> TelegramMessageResponse:
         """
@@ -52,18 +92,15 @@ class TelegramNotificationService:
                 "x-api-key": self.api_key
             }
             
-            # Send request
-            status_code, response_data = await self.http_client.post_form_data(
-                url=self.endpoint,
-                data=request.to_form_data(),
-                headers=headers
-            )
+            # Send request with retry logic
+            status_code, response_data = await self._send_telegram_request(request, headers)
             
             # Create response object
             return TelegramMessageResponse.from_response(status_code, response_data)
             
         except Exception as e:
-            # Handle network/connection errors
+            # Handle network/connection errors (after all retries exhausted)
+            logger.error(f"All retry attempts failed for tweet notification: {e}")
             return TelegramMessageResponse.from_error(0, str(e))
     
     def _format_tweet_message(self, tweet: Tweet) -> str:
