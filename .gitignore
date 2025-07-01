@@ -258,3 +258,4 @@ dev_*
 /src/services/__pycache__/notification_service.cpython-310.pyc
 /src/core/__pycache__/monitor.cpython-310.pyc
 /src/config/__pycache__/config_manager.cpython-310.pyc
+*.pyc

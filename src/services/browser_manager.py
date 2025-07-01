@@ -20,9 +20,23 @@ class BrowserManager:
         self.browser = await self.playwright.chromium.launch(headless=self.headless)
         self.context = await self.browser.new_context(
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-            viewport={"width": 1280, "height": 800}
+            viewport={"width": 1280, "height": 800},
+            # Disable caching to ensure fresh content
+            extra_http_headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
         )
         return self.context
+    
+    async def clear_cache(self):
+        """Clear browser cache and cookies"""
+        if self.context:
+            # Clear all cookies
+            await self.context.clear_cookies()
+            # Clear storage (localStorage, sessionStorage)
+            await self.context.clear_permissions()
     
     async def stop(self):
         """Clean up browser resources"""

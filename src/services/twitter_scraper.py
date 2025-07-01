@@ -31,7 +31,10 @@ class TwitterScraper:
             Tweet object or None if failed
         """
         try:
-            await page.goto(f"https://x.com/{username}", timeout=60000)
+            # Clear cache before loading page to ensure fresh content
+            await page.context.clear_cookies()
+            
+            await page.goto(f"https://x.com/{username}", timeout=self.page_timeout)
             
             # Wait for page to load completely
             await page.wait_for_load_state("networkidle")
