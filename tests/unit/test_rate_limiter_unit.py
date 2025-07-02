@@ -53,7 +53,11 @@ class TestRateLimiter:
             min_delay_seconds=0.1,
             max_delay_seconds=0.2
         )
-        return RateLimiter(config)
+        rate_limiter = RateLimiter(config)
+        # Override domain configs for testing to use the fast config
+        rate_limiter.domain_configs["x.com"] = config
+        rate_limiter.domain_configs["twitter.com"] = config
+        return rate_limiter
     
     def test_initialization(self, rate_limiter):
         """Test rate limiter initialization"""
@@ -116,7 +120,7 @@ class TestRateLimiter:
         """Test rate limiting check when limited"""
         domain = "x.com"
         
-        # Add enough requests to trigger rate limit
+        # Add enough requests to trigger rate limit (x.com allows 20, fast_rate_limiter overrides to 5)
         for _ in range(6):  # More than the 5 per minute limit
             fast_rate_limiter.record_request(domain)
         
@@ -142,7 +146,7 @@ class TestRateLimiter:
         stats = rate_limiter.get_stats(domain)
         
         assert stats["requests_in_last_minute"] == 3
-        assert stats["requests_per_minute_limit"] == 30
+        assert stats["requests_per_minute_limit"] == 20
         assert not stats["is_rate_limited"]
         assert stats["backoff_until"] == 0
     
@@ -201,7 +205,7 @@ class TestRateLimiter:
         await fast_rate_limiter.wait_if_needed(domain)
         end_time = time.time()
         
-        # Should have waited for random delay (0.1-0.2 seconds)
+        # Should have waited for random delay (0.1-0.2 seconds for fast_rate_limiter)
         elapsed = end_time - start_time
         assert 0.1 <= elapsed <= 0.3  # Allow some tolerance
         
@@ -213,7 +217,7 @@ class TestRateLimiter:
         """Test wait_if_needed when rate limited"""
         domain = "x.com"
         
-        # Add enough requests to trigger rate limit
+        # Add enough requests to trigger rate limit (fast_rate_limiter allows 5)
         for _ in range(5):
             fast_rate_limiter.record_request(domain)
         
@@ -265,18 +269,100 @@ class TestRateLimiter:
         assert stats["requests_in_last_minute"] == 2
         assert len(rate_limiter.request_times[domain]) == 2
     
-    def test_multiple_domains(self, rate_limiter):
-        """Test rate limiting for multiple domains"""
-        domains = ["x.com", "api.x.com", "telegram.com"]
+    def test_x_com_domain(self, rate_limiter):
+        """Test rate limiting for x.com domain (conservative settings)"""
+        domain = "x.com"
         
-        # Add requests to different domains
-        for domain in domains:
-            rate_limiter.record_request(domain)
+        # Should use conservative settings
+        config = rate_limiter.get_domain_config(domain)
+        assert config.requests_per_minute == 20
+        assert config.min_delay_seconds == 3.0
+        assert config.max_delay_seconds == 12.0
         
-        # Each domain should be tracked separately
-        for domain in domains:
-            assert len(rate_limiter.request_times[domain]) == 1
-            assert not rate_limiter.is_rate_limited(domain)
+        # Test request recording
+        rate_limiter.record_request(domain)
+        assert len(rate_limiter.request_times[domain]) == 1
+        assert not rate_limiter.is_rate_limited(domain)
+    
+    def test_twitter_com_domain(self, rate_limiter):
+        """Test rate limiting for twitter.com domain (conservative settings)"""
+        domain = "twitter.com"
+        
+        # Should use conservative settings (same as x.com)
+        config = rate_limiter.get_domain_config(domain)
+        assert config.requests_per_minute == 20
+        assert config.min_delay_seconds == 3.0
+        assert config.max_delay_seconds == 12.0
+        
+        # Test request recording
+        rate_limiter.record_request(domain)
+        assert len(rate_limiter.request_times[domain]) == 1
+        assert not rate_limiter.is_rate_limited(domain)
+    
+    def test_telegram_com_domain(self, rate_limiter):
+        """Test rate limiting for telegram.com domain (default settings)"""
+        domain = "telegram.com"
+        
+        # Should use default settings
+        config = rate_limiter.get_domain_config(domain)
+        assert config.requests_per_minute == 30
+        assert config.min_delay_seconds == 2.0
+        assert config.max_delay_seconds == 8.0
+        
+        # Test request recording
+        rate_limiter.record_request(domain)
+        assert len(rate_limiter.request_times[domain]) == 1
+        assert not rate_limiter.is_rate_limited(domain)
+    
+    def test_example_com_domain(self, rate_limiter):
+        """Test rate limiting for example.com domain (default settings)"""
+        domain = "example.com"
+        
+        # Should use default settings
+        config = rate_limiter.get_domain_config(domain)
+        assert config.requests_per_minute == 30
+        assert config.min_delay_seconds == 2.0
+        assert config.max_delay_seconds == 8.0
+        
+        # Test request recording
+        rate_limiter.record_request(domain)
+        assert len(rate_limiter.request_times[domain]) == 1
+        assert not rate_limiter.is_rate_limited(domain)
+    
+    def test_domain_specific_config(self, rate_limiter):
+        """Test that different domains use different configurations"""
+        # Twitter domains should use conservative settings
+        twitter_config = rate_limiter.get_domain_config("x.com")
+        assert twitter_config.requests_per_minute == 20
+        assert twitter_config.min_delay_seconds == 3.0
+        assert twitter_config.max_delay_seconds == 12.0
+        
+        # Other domains should use default settings
+        default_config = rate_limiter.get_domain_config("example.com")
+        assert default_config.requests_per_minute == 30
+        assert default_config.min_delay_seconds == 2.0
+        assert default_config.max_delay_seconds == 8.0
+    
+    def test_domain_specific_delays(self, rate_limiter):
+        """Test that different domains get different delay ranges"""
+        # Twitter should get longer delays
+        twitter_delays = []
+        for _ in range(10):
+            delay = rate_limiter.get_random_delay("x.com")
+            twitter_delays.append(delay)
+            assert 3.0 <= delay <= 12.0
+        
+        # Default domain should get shorter delays
+        default_delays = []
+        for _ in range(10):
+            delay = rate_limiter.get_random_delay("example.com")
+            default_delays.append(delay)
+            assert 2.0 <= delay <= 8.0
+        
+        # Twitter delays should be longer on average
+        avg_twitter = sum(twitter_delays) / len(twitter_delays)
+        avg_default = sum(default_delays) / len(default_delays)
+        assert avg_twitter > avg_default
     
     @pytest.mark.asyncio
     async def test_backoff_calculation(self, rate_limiter):
