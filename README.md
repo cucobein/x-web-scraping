@@ -88,9 +88,13 @@ python -m pytest --cov=src
 
 ## 🍪 Cookie Setup
 
-### Exporting X.com Cookies
+### Domain-Specific Cookie Management
 
-To enable authenticated scraping, you need to export your X.com cookies:
+The app now supports domain-specific cookie injection for different platforms. Each domain can have its own cookie configuration:
+
+#### X.com/Twitter Cookies
+
+To enable authenticated scraping for X.com, export your cookies:
 
 1. **Open Chrome/Edge** and go to `https://x.com`
 2. **Log in** to your X.com account
@@ -100,6 +104,13 @@ To enable authenticated scraping, you need to export your X.com cookies:
    - `auth_token` (essential for authentication)
    - `ct0` (CSRF token)
    - Any other cookies for `.x.com` domain
+
+#### Adding Support for Other Domains
+
+To add cookie support for new domains (Facebook, Instagram, YouTube, etc.):
+1. Create a cookie file: `config/{domain}_cookies.json`
+2. Export cookies for that domain
+3. The browser manager will automatically load and inject domain-specific cookies
 
 **Example cookie format:**
 ```json
@@ -171,11 +182,11 @@ When enabled, the monitor will send real-time notifications to Telegram whenever
 ### Anti-Detection Features
 
 The monitor includes several anti-detection measures:
-- **Rate Limiting**: Domain-specific request tracking and delays
+- **Domain-Specific Rate Limiting**: Intelligent rate limiting with domain-specific backoff strategies
 - **User Agent Rotation**: Random browser user agents to avoid detection
 - **Random Delays**: Unpredictable timing between requests
 - **Request Tracking**: Per-domain request counting and limiting
-- **Authenticated Access**: Uses real browser cookies to avoid detection
+- **Domain-Specific Cookie Injection**: Authenticated access with domain-specific cookie management
 - **Dynamic Content Handling**: Smart page loading detection for modern web apps
 
 ## 🏛️ CDMX Government Accounts
@@ -236,9 +247,10 @@ The monitor includes robust error handling and anti-detection measures:
 - **Network timeouts and retries**: Exponential backoff for failed requests
 - **Page load failures**: Graceful handling of network issues
 - **Account access issues**: Proper error reporting and recovery
-- **Rate limiting**: Domain-specific request tracking and delays
+- **Domain-specific rate limiting**: Intelligent backoff strategies per domain
 - **User agent rotation**: Random browser user agents to avoid detection
 - **Random delays**: Unpredictable timing between requests
+- **Domain-specific cookie injection**: Authenticated access per platform
 - **Graceful shutdown**: Clean shutdown on Ctrl+C
 - **Comprehensive logging**: Detailed error reporting and monitoring
 
@@ -265,6 +277,9 @@ Feel free to extend this tool with:
 - [x] **Anti-detection measures**: Rate limiting, user agent rotation, random delays
 - [x] **Browser management**: Intelligent browser lifecycle management
 - [x] **Comprehensive testing**: Unit and integration tests with real HTML fixtures
+- [x] **Domain-specific rate limiting**: Intelligent backoff strategies per domain
+- [x] **Domain-specific cookie injection**: Authenticated access per platform
+- [ ] **Context pooling**: Efficient browser context reuse and management
 - [ ] **Multi-platform support**: Facebook, Instagram, YouTube
 - [ ] **Database storage**: Persistent storage for monitoring history
 - [ ] **Web interface**: Dashboard for monitoring status
