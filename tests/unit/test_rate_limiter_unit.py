@@ -146,7 +146,7 @@ class TestRateLimiter:
         stats = rate_limiter.get_stats(domain)
         
         assert stats["requests_in_last_minute"] == 3
-        assert stats["requests_per_minute_limit"] == 20
+        assert stats["requests_per_minute_limit"] == 10
         assert not stats["is_rate_limited"]
         assert stats["backoff_until"] == 0
     
@@ -275,7 +275,7 @@ class TestRateLimiter:
         
         # Should use conservative settings
         config = rate_limiter.get_domain_config(domain)
-        assert config.requests_per_minute == 20
+        assert config.requests_per_minute == 10
         assert config.min_delay_seconds == 3.0
         assert config.max_delay_seconds == 12.0
         
@@ -290,7 +290,7 @@ class TestRateLimiter:
         
         # Should use conservative settings (same as x.com)
         config = rate_limiter.get_domain_config(domain)
-        assert config.requests_per_minute == 20
+        assert config.requests_per_minute == 10
         assert config.min_delay_seconds == 3.0
         assert config.max_delay_seconds == 12.0
         
@@ -333,7 +333,7 @@ class TestRateLimiter:
         """Test that different domains use different configurations"""
         # Twitter domains should use conservative settings
         twitter_config = rate_limiter.get_domain_config("x.com")
-        assert twitter_config.requests_per_minute == 20
+        assert twitter_config.requests_per_minute == 10
         assert twitter_config.min_delay_seconds == 3.0
         assert twitter_config.max_delay_seconds == 12.0
         

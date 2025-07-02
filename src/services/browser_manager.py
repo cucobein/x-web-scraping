@@ -94,7 +94,32 @@ class BrowserManager:
     async def start(self) -> BrowserContext:
         """Initialize browser and context with anti-detection features"""
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=self.headless)
+        
+        # Add headless-specific arguments to make it behave more like regular browser
+        browser_args = []
+        if self.headless:
+            browser_args = [
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-web-security",
+                "--disable-features=VizDisplayCompositor",
+                "--disable-extensions",
+                "--disable-plugins",
+                "--disable-images",  # Speed up loading
+                "--disable-javascript-harmony-shipping",
+                "--disable-background-timer-throttling",
+                "--disable-backgrounding-occluded-windows",
+                "--disable-renderer-backgrounding",
+                "--disable-features=TranslateUI",
+                "--disable-ipc-flooding-protection"
+            ]
+        
+        self.browser = await self.playwright.chromium.launch(
+            headless=self.headless,
+            args=browser_args
+        )
         
         # Initialize pool manager if enabled
         if self.enable_pooling and self.pool_manager:
@@ -105,7 +130,19 @@ class BrowserManager:
         
         self.context = await self.browser.new_context(
             user_agent=user_agent,
-            viewport={"width": 1280, "height": 800}
+            viewport={"width": 1280, "height": 800},
+            # Add headless-specific settings
+            java_script_enabled=True,
+            bypass_csp=True,  # Bypass Content Security Policy
+            ignore_https_errors=True,
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1"
+            }
         )
         
         # Note: Cookies are now injected per-domain when creating contexts
@@ -137,7 +174,19 @@ class BrowserManager:
         
         context = await self.browser.new_context(
             user_agent=user_agent,
-            viewport={"width": 1280, "height": 800}
+            viewport={"width": 1280, "height": 800},
+            # Add headless-specific settings
+            java_script_enabled=True,
+            bypass_csp=True,  # Bypass Content Security Policy
+            ignore_https_errors=True,
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1"
+            }
         )
         
         # Inject domain-specific cookies

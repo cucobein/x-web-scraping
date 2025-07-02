@@ -155,7 +155,18 @@ class TestBrowserManager:
         # Verify context was created with correct parameters
         mock_browser.new_context.assert_called_once_with(
             user_agent="test_user_agent",
-            viewport={"width": 1280, "height": 800}
+            viewport={"width": 1280, "height": 800},
+            java_script_enabled=True,
+            bypass_csp=True,
+            ignore_https_errors=True,
+            extra_http_headers={
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1"
+            }
         )
         
         # Verify cookies were added

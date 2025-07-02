@@ -43,7 +43,19 @@ class ContextPool:
         if len(self.in_use_contexts) < self.max_contexts:
             context = await browser.new_context(
                 user_agent=user_agent,
-                viewport={"width": 1280, "height": 800}
+                viewport={"width": 1280, "height": 800},
+                # Add headless-specific settings
+                java_script_enabled=True,
+                bypass_csp=True,  # Bypass Content Security Policy
+                ignore_https_errors=True,
+                extra_http_headers={
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    "DNT": "1",
+                    "Connection": "keep-alive",
+                    "Upgrade-Insecure-Requests": "1"
+                }
             )
             
             # Inject cookies if provided
