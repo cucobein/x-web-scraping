@@ -1,5 +1,5 @@
 {
-  "check_interval": 10,
+  "check_interval": 60,
   "headless": true,
   "page_timeout": 10000,
   "telegram": {
