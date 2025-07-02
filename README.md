@@ -29,12 +29,14 @@ x-web-scraping/
 - **Telegram Notifications**: Real-time alerts via Telegram bot with retry logic
 - **Anti-Detection**: Rate limiting, user agent rotation, and random delays
 - **Browser Management**: Intelligent browser lifecycle management with Playwright
+- **Context Pooling**: Efficient, domain-specific browser context pooling for high concurrency and resource reuse
 - **Configurable**: JSON-based configuration for accounts and settings
 - **State Persistence**: Saves and loads monitoring state
 - **CDMX Government Focus**: Pre-configured with Mexico City government accounts
 - **Extensible**: Modular architecture for easy extension
 - **Tested**: Comprehensive test suite with real HTML fixtures
 - **Git LFS**: Large HTML fixtures properly version controlled
+- **Context Pooling**: PoolManager provides efficient reuse of browser contexts per domain, reducing overhead and improving performance for high-frequency or multi-account monitoring. Pooling is enabled by default and can be configured or disabled in the BrowserManager constructor.
 
 ## 🚀 Quick Start
 
@@ -295,3 +297,16 @@ Feel free to extend this tool with:
 - **[Scripts Documentation](scripts/README.md)**: Utility scripts and tools
 - **[Testing Guide](tests/README.md)**: Comprehensive testing documentation
 - **[Configuration](config/)**: Settings and configuration files
+
+## 🧠 Advanced: Context Pooling & PoolManager
+
+The app supports **domain-specific browser context pooling** for maximum efficiency and scalability:
+
+- **PoolManager**: Manages a pool of browser contexts for each domain (e.g., x.com, twitter.com)
+- **ContextPool**: Handles creation, reuse, and cleanup of contexts for each domain
+- **Automatic Integration**: Pooling is enabled by default; you can disable it by passing `enable_pooling=False` to `BrowserManager`
+- **Usage**:
+  - Use `create_context_for_domain(domain)` to get a context (from the pool if enabled)
+  - When done, call `return_context_to_pool(domain, context)` to return it for reuse
+- **Configuration**: Pool size is configurable via `max_contexts_per_domain` in `BrowserManager`
+- **Benefits**: Reduces browser overhead, increases throughput, and supports high-concurrency scraping

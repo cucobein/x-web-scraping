@@ -47,7 +47,9 @@ src/
 **Purpose**: External interactions and business logic
 
 **Components:**
-- `browser_manager.py`: Playwright browser lifecycle management with domain-specific cookie injection and rate limiting
+- `browser_manager.py`: Playwright browser lifecycle management with domain-specific cookie injection, rate limiting, and context pooling
+- `pool_manager.py`: PoolManager for efficient, domain-specific browser context pooling
+- `context_pool.py`: ContextPool for per-domain context reuse and cleanup
 - `twitter_scraper.py`: Twitter-specific scraping logic with anti-detection
 - `notification_service.py`: Notification delivery system with retry logic
 - `telegram_notification_service.py`: Telegram-specific notification service with exponential backoff
@@ -61,6 +63,7 @@ src/
 - Provide business logic implementation
 - Implement anti-detection measures (domain-specific rate limiting, user agent rotation)
 - Manage domain-specific cookie injection and authentication
+- Efficiently pool and reuse browser contexts per domain for high concurrency
 - Manage request timing and delays
 
 ### **Repository Layer** (`repositories/`)
@@ -185,4 +188,14 @@ Models ← Core ← Services ← Repositories
 - **Async/await** for I/O operations
 - **Caching** for expensive operations
 - **Resource management** (browser cleanup, file handles)
-- **Memory efficiency** for large datasets 
+- **Memory efficiency** for large datasets
+
+## 🧠 Context Pooling & PoolManager
+
+- **PoolManager**: Manages a pool of browser contexts for each domain, enabling efficient reuse and reducing browser overhead.
+- **ContextPool**: Handles the creation, reuse, and cleanup of contexts for each domain.
+- **Integration**: Pooling is enabled by default in `BrowserManager` and can be configured or disabled as needed.
+- **Usage**:
+  - Use `create_context_for_domain(domain)` to get a context (from the pool if enabled)
+  - When done, call `return_context_to_pool(domain, context)` to return it for reuse
+- **Benefits**: Reduces resource usage, increases throughput, and supports high-concurrency scraping workflows. 

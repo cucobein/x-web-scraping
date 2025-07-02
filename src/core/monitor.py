@@ -47,6 +47,9 @@ class XMonitor:
             True if successful, False otherwise
         """
         # Create domain-specific context with cookies
+        # Note: Currently hardcoded to "x.com" since we only scrape Twitter/X
+        # When adding support for other domains (Facebook, Instagram, etc.), 
+        # this should be made domain-aware based on the account or configuration
         context = await self.browser_manager.create_context_for_domain("x.com")
         if not context:
             await self.notification_service.notify_error(username, "Browser context not available")
@@ -81,7 +84,9 @@ class XMonitor:
             return False
         finally:
             await page.close()
-            await context.close()  # Close the context after use
+            # Return context to pool instead of closing it
+            # Note: Hardcoded to "x.com" - see comment above for domain awareness
+            await self.browser_manager.return_context_to_pool("x.com", context)
     
     async def run_monitoring_cycle(self):
         """Run one complete monitoring cycle"""

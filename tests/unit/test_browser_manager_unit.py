@@ -143,6 +143,9 @@ class TestBrowserManager:
         
         browser_manager.browser = mock_browser
         browser_manager.domain_cookies["x.com"] = mock_cookie_data
+        # Ensure pool manager's browser is set if pooling is enabled
+        if getattr(browser_manager, "pool_manager", None):
+            browser_manager.pool_manager.set_browser(mock_browser)
         
         # Mock rate limiter
         browser_manager.rate_limiter.get_random_user_agent = MagicMock(return_value="test_user_agent")
@@ -169,6 +172,9 @@ class TestBrowserManager:
         mock_browser.new_context.return_value = mock_context
         
         browser_manager.browser = mock_browser
+        # Ensure pool manager's browser is set if pooling is enabled
+        if getattr(browser_manager, "pool_manager", None):
+            browser_manager.pool_manager.set_browser(mock_browser)
         browser_manager.rate_limiter.get_random_user_agent = MagicMock(return_value="test_user_agent")
         
         context = await browser_manager.create_context_for_domain("nonexistent.com")

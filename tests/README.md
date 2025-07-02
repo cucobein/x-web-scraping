@@ -57,7 +57,12 @@ tests/
 │   ├── test_tweet_model_unit.py
 │   ├── test_tweet_repository_unit.py
 │   ├── test_http_client_unit.py
-│   └── test_twitter_scraper_unit.py
+│   ├── test_twitter_scraper_unit.py
+│   ├── test_telegram_notification_service_unit.py
+│   ├── test_rate_limiter_unit.py
+│   ├── test_notification_service_unit.py
+│   ├── test_monitor_unit.py
+│   └── test_pool_manager_unit.py
 └── README.md              # This file
 ```
 
@@ -82,6 +87,9 @@ tests/
 - **`test_rate_limiter_unit.py`**: Rate limiting and anti-detection functionality
 - **`test_notification_service_unit.py`**: Notification service initialization and configuration
 - **`test_monitor_unit.py`**: Monitor class behavior with mocked dependencies
+- **`test_pool_manager_unit.py`**: PoolManager context pooling logic (fully mocked, no real browser)
+- **`test_context_pool_unit.py`**: ContextPool per-domain pooling logic (fully mocked)
+- **`test_browser_manager_unit.py`**: BrowserManager integration with PoolManager, context pooling, and backward compatibility (all browser logic mocked)
 
 ### Integration Tests (`tests/integration/`)
 **Purpose:** Test component interactions using real HTML fixtures
@@ -160,6 +168,7 @@ These scenarios are tested in the integration tests:
 - **Unit tests**: Use mocks, test specific functionality
 - **Integration tests**: Use real fixtures, test component interactions
 - **No hybrid tests**: Each test file has a clear purpose
+- **Context pooling**: All pooling logic is tested with mocks only; no real browser or network calls in unit tests
 
 ### 3. Fast Execution
 - Unit tests run quickly with mocks
