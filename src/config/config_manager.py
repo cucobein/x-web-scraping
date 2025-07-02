@@ -37,7 +37,6 @@ class ConfigManager:
         """Get default configuration"""
         return {
             "check_interval": 30,
-            "sample_size": 5,
             "headless": True,
             "accounts": ["nasa"]
         }
@@ -47,10 +46,7 @@ class ConfigManager:
         """Get check interval in seconds"""
         return self.load().get("check_interval", 60)
     
-    @property
-    def sample_size(self) -> int:
-        """Get sample size"""
-        return self.load().get("sample_size", 5)
+
     
     @property
     def headless(self) -> bool:

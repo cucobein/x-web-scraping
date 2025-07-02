@@ -23,18 +23,8 @@ class XMonitor:
         self.notification_service = NotificationService(self.config_manager)
         self.tweet_repository = TweetRepository()
         
-        # Internal state
-        self.current_index = 0
+                # Internal state
         self.is_running = False
-    
-    def get_next_batch(self, batch_size: int) -> List[str]:
-        """Get next batch of accounts in order, cycling back to start when reaching end"""
-        accounts = self.config_manager.accounts
-        batch = []
-        for _ in range(batch_size):
-            batch.append(accounts[self.current_index])
-            self.current_index = (self.current_index + 1) % len(accounts)
-        return batch
     
     async def process_account(self, username: str) -> bool:
         """
@@ -90,12 +80,12 @@ class XMonitor:
     
     async def run_monitoring_cycle(self):
         """Run one complete monitoring cycle"""
-        sample_size = self.config_manager.sample_size
-        selected = self.get_next_batch(sample_size)
+        # Process all accounts in each cycle - no more batching
+        accounts = self.config_manager.accounts
         
-        await self.notification_service.notify_status(f"\n🔄 Checking: {', '.join(selected)}")
+        await self.notification_service.notify_status(f"\n🔄 Checking: {', '.join(accounts)}")
         
-        for username in selected:
+        for username in accounts:
             await self.process_account(username)
     
     async def start(self):

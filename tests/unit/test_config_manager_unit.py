@@ -17,7 +17,6 @@ class TestConfigManager:
         """Test loading a valid config file"""
         config_data = {
             "check_interval": 60,
-            "sample_size": 3,
             "headless": False,
             "accounts": ["user1", "user2", "user3"]
         }
@@ -28,7 +27,6 @@ class TestConfigManager:
                 config = config_manager.load()
                 
                 assert config["check_interval"] == 60
-                assert config["sample_size"] == 3
                 assert config["headless"] is False
                 assert config["accounts"] == ["user1", "user2", "user3"]
     
@@ -40,7 +38,6 @@ class TestConfigManager:
             
             # Should use defaults
             assert config["check_interval"] == 30
-            assert config["sample_size"] == 5
             assert config["headless"] is True
             assert config["accounts"] == ["nasa"]
     
@@ -57,7 +54,6 @@ class TestConfigManager:
         """Test config property accessors"""
         config_data = {
             "check_interval": 45,
-            "sample_size": 7,
             "headless": True,
             "accounts": ["test1", "test2"]
         }
@@ -67,7 +63,6 @@ class TestConfigManager:
                 config_manager = ConfigManager("test_config.json")
                 
                 assert config_manager.check_interval == 45
-                assert config_manager.sample_size == 7
                 assert config_manager.headless is True
                 assert config_manager.accounts == ["test1", "test2"]
     
@@ -77,7 +72,6 @@ class TestConfigManager:
             config_manager = ConfigManager("nonexistent.json")
             
             assert config_manager.check_interval == 30
-            assert config_manager.sample_size == 5
             assert config_manager.headless is True
             assert config_manager.accounts == ["nasa"]
     
@@ -106,7 +100,6 @@ class TestConfigManager:
             
             # Should have required fields
             assert "check_interval" in config
-            assert "sample_size" in config
             assert "headless" in config
             assert "accounts" in config
             assert isinstance(config["accounts"], list)

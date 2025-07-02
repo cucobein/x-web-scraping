@@ -1,6 +1,5 @@
 {
   "check_interval": 10,
-  "sample_size": 5,
   "headless": true,
   "page_timeout": 10000,
   "telegram": {
