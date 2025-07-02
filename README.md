@@ -24,6 +24,7 @@ x-web-scraping/
 ## ✨ Features
 
 - **API-Free**: No Twitter API required
+- **Authenticated Scraping**: Uses browser cookies for authenticated access to X.com
 - **Multi-Account Monitoring**: Monitor multiple accounts simultaneously
 - **Telegram Notifications**: Real-time alerts via Telegram bot with retry logic
 - **Anti-Detection**: Rate limiting, user agent rotation, and random delays
@@ -57,10 +58,12 @@ x-web-scraping/
 
 ### Basic Usage
 
-Run the monitor with default settings:
-```bash
-python main.py
-```
+1. **Export your X.com cookies** (see Cookie Setup section below)
+
+2. **Run the monitor with default settings:**
+   ```bash
+   python main.py
+   ```
 
 ### Testing
 
@@ -82,6 +85,50 @@ python -m pytest --cov=src
 - **[Scripts](scripts/README.md)**: Utility scripts for development and testing
 - **[Tests](tests/README.md)**: Comprehensive testing documentation
 - **[Configuration](config/)**: Configuration files and settings
+
+## 🍪 Cookie Setup
+
+### Exporting X.com Cookies
+
+To enable authenticated scraping, you need to export your X.com cookies:
+
+1. **Open Chrome/Edge** and go to `https://x.com`
+2. **Log in** to your X.com account
+3. **Open DevTools** (F12 or right-click → Inspect)
+4. **Go to Application/Storage tab** → Cookies → `https://x.com`
+5. **Export the following cookies** to `config/twitter_cookies.json`:
+   - `auth_token` (essential for authentication)
+   - `ct0` (CSRF token)
+   - Any other cookies for `.x.com` domain
+
+**Example cookie format:**
+```json
+[
+  {
+    "name": "auth_token",
+    "value": "your_auth_token_here",
+    "domain": ".x.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "ct0",
+    "value": "your_csrf_token_here", 
+    "domain": ".x.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": false,
+    "sameSite": "Lax"
+  }
+]
+```
+
+**Important Notes:**
+- Cookies expire periodically - you may need to refresh them
+- Keep your cookies secure and don't share them
+- The tool will work without cookies but with limited access
 
 ## ⚙️ Configuration
 
@@ -128,6 +175,8 @@ The monitor includes several anti-detection measures:
 - **User Agent Rotation**: Random browser user agents to avoid detection
 - **Random Delays**: Unpredictable timing between requests
 - **Request Tracking**: Per-domain request counting and limiting
+- **Authenticated Access**: Uses real browser cookies to avoid detection
+- **Dynamic Content Handling**: Smart page loading detection for modern web apps
 
 ## 🏛️ CDMX Government Accounts
 
