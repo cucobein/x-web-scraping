@@ -39,14 +39,14 @@ class RateLimiter:
         # Domain-specific configurations
         self.domain_configs: Dict[str, RateLimitConfig] = {
             "x.com": RateLimitConfig(
-                requests_per_minute=20,        # More conservative for Twitter
+                requests_per_minute=10,        # Very conservative for Twitter
                 min_delay_seconds=3.0,         # Longer delays
                 max_delay_seconds=12.0,        # Longer delays
                 backoff_multiplier=2.5,        # Steeper backoff
                 max_backoff_seconds=600        # 10 minutes max
             ),
             "twitter.com": RateLimitConfig(
-                requests_per_minute=20,        # Same conservative settings
+                requests_per_minute=10,        # Same very conservative settings
                 min_delay_seconds=3.0,
                 max_delay_seconds=12.0,
                 backoff_multiplier=2.5,

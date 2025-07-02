@@ -1,5 +1,5 @@
 {
-  "check_interval": 10,
+  "check_interval": 60,
   "headless": false,
   "page_timeout": 10000,
   "telegram": {
@@ -8,16 +8,7 @@
   },
   "accounts": [
     "olaphone",
-    "BreakingNews",
-    "earthquakeBot",
-    "Reuters",
-    "Stocktwits",
-    "PopCrave",
-    "PopBase",
-    "RealTimeWWII",
-    "NASA",
-    "SportsCenter",
-    "nytimes",
+    "cucobein",
     "elonmusk"
   ]
 }

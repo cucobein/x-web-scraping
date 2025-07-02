@@ -156,7 +156,6 @@ Edit `config/config.json` to customize:
     "Bomberos_CDMX"
   ],
   "check_interval": 60,
-  "sample_size": 5,
   "telegram": {
     "endpoint": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
     "api_key": "your-api-key-here"
@@ -167,7 +166,6 @@ Edit `config/config.json` to customize:
 ### Monitoring Parameters
 
 - `check_interval`: Seconds between monitoring cycles (default: 60)
-- `sample_size`: Number of accounts to check per cycle (default: 5)
 - `headless`: Whether to run browser in headless mode (default: True)
 
 ### Telegram Notifications
@@ -310,3 +308,22 @@ The app supports **domain-specific browser context pooling** for maximum efficie
   - When done, call `return_context_to_pool(domain, context)` to return it for reuse
 - **Configuration**: Pool size is configurable via `max_contexts_per_domain` in `BrowserManager`
 - **Benefits**: Reduces browser overhead, increases throughput, and supports high-concurrency scraping
+
+## 🔄 Monitoring Behavior
+
+The monitor now processes **all accounts in each cycle** for maximum efficiency:
+
+- **No more batching**: Removed the legacy `sample_size` parameter and batching logic
+- **Full cycle processing**: Each monitoring cycle processes all configured accounts
+- **Rate limiting**: Domain-specific rate limiting handles timing between requests
+- **Cycle timing**: `check_interval` controls time between complete cycles
+- **Context pooling**: Efficient browser context reuse across all accounts
+
+**Example cycle:**
+```
+Cycle 1: Process all 12 accounts → Wait 10 seconds
+Cycle 2: Process all 12 accounts → Wait 10 seconds
+Cycle 3: Process all 12 accounts → Wait 10 seconds
+```
+
+This approach eliminates duplicate processing within cycles and lets the sophisticated rate limiter handle all timing concerns.

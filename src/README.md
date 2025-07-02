@@ -89,6 +89,8 @@ src/
 - Manage application lifecycle
 - Implement main workflows
 - Handle error recovery
+- Process all accounts in each monitoring cycle
+- Manage efficient resource usage with context pooling
 
 ## 🔄 Data Flow
 
@@ -198,4 +200,6 @@ Models ← Core ← Services ← Repositories
 - **Usage**:
   - Use `create_context_for_domain(domain)` to get a context (from the pool if enabled)
   - When done, call `return_context_to_pool(domain, context)` to return it for reuse
-- **Benefits**: Reduces resource usage, increases throughput, and supports high-concurrency scraping workflows. 
+- **Benefits**: Reduces resource usage, increases throughput, and supports high-concurrency scraping workflows.
+- **Context pooling**: All pooling logic is tested with mocks only; no real browser or network calls in unit tests
+- **No batching**: Removed legacy batching logic; all accounts processed per cycle
