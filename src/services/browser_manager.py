@@ -1,7 +1,7 @@
 """
 Browser management service with anti-detection features
 """
-from typing import Optional
+from typing import Optional, Dict, List
 import json
 from pathlib import Path
 from playwright.async_api import async_playwright, Browser, BrowserContext
@@ -24,6 +24,61 @@ class BrowserManager:
         self.context: Optional[BrowserContext] = None
         self.playwright = None
         self.rate_limiter = rate_limiter or RateLimiter()
+        
+        # Domain-specific cookie configurations
+        self.domain_cookies = self._load_domain_cookies()
+    
+    def _load_domain_cookies(self) -> Dict[str, List[dict]]:
+        """
+        Load cookies for different domains
+        
+        Returns:
+            Dictionary mapping domains to their cookie configurations
+        """
+        return {
+            "x.com": self._load_cookies_from_file("config/twitter_cookies.json"),
+            "twitter.com": self._load_cookies_from_file("config/twitter_cookies.json"),
+            # Add more domains as needed:
+            # "facebook.com": self._load_cookies_from_file("config/facebook_cookies.json"),
+            # "instagram.com": self._load_cookies_from_file("config/instagram_cookies.json"),
+            # "youtube.com": self._load_cookies_from_file("config/youtube_cookies.json"),
+        }
+    
+    def _load_cookies_from_file(self, file_path: str) -> List[dict]:
+        """
+        Load cookies from a JSON file
+        
+        Args:
+            file_path: Path to the cookie file
+            
+        Returns:
+            List of cookie dictionaries
+        """
+        try:
+            cookie_file = Path(file_path)
+            if not cookie_file.exists():
+                return []
+            
+            with open(cookie_file, 'r') as f:
+                cookie_data = json.load(f)
+            
+            return cookie_data
+            
+        except Exception as e:
+            print(f"❌ Error loading cookies from {file_path}: {e}")
+            return []
+    
+    def get_domain_cookies(self, domain: str) -> List[dict]:
+        """
+        Get cookies for a specific domain
+        
+        Args:
+            domain: Domain to get cookies for
+            
+        Returns:
+            List of cookie dictionaries for the domain
+        """
+        return self.domain_cookies.get(domain, [])
     
     async def start(self) -> BrowserContext:
         """Initialize browser and context with anti-detection features"""
@@ -38,13 +93,39 @@ class BrowserManager:
             viewport={"width": 1280, "height": 800}
         )
         
-        # Inject Twitter cookies
-        cookies = self._load_twitter_cookies()
-        if cookies:
-            await self.context.add_cookies(cookies)
-            print("🔐 Loaded Twitter cookies for authenticated session")
+        # Note: Cookies are now injected per-domain when creating contexts
+        # This maintains backward compatibility for the single context approach
         
         return self.context
+    
+    async def create_context_for_domain(self, domain: str) -> BrowserContext:
+        """
+        Create a new browser context with domain-specific cookies
+        
+        Args:
+            domain: Domain to create context for
+            
+        Returns:
+            Browser context with domain-specific cookies injected
+        """
+        if not self.browser:
+            raise RuntimeError("Browser not started. Call start() first.")
+        
+        # Use rotating user agent for anti-detection
+        user_agent = self.rate_limiter.get_random_user_agent()
+        
+        context = await self.browser.new_context(
+            user_agent=user_agent,
+            viewport={"width": 1280, "height": 800}
+        )
+        
+        # Inject domain-specific cookies
+        cookies = self.get_domain_cookies(domain)
+        if cookies:
+            await context.add_cookies(cookies)
+            print(f"🔐 Loaded cookies for {domain}")
+        
+        return context
     
     async def clear_cache(self):
         """Clear browser cache and cookies"""
@@ -95,18 +176,18 @@ class BrowserManager:
         """
         return self.rate_limiter.get_stats(domain)
     
-    def _load_twitter_cookies(self) -> list:
-        """Load Twitter cookies from config file"""
-        try:
-            cookie_file = Path("config/twitter_cookies.json")
-            if not cookie_file.exists():
-                return []
+    def get_domain_config(self, domain: str) -> dict:
+        """
+        Get configuration information for a domain
+        
+        Args:
+            domain: Domain to get config for
             
-            with open(cookie_file, 'r') as f:
-                cookie_data = json.load(f)
-            
-            return cookie_data
-            
-        except Exception as e:
-            print(f"❌ Error loading Twitter cookies: {e}")
-            return [] 
+        Returns:
+            Dictionary with domain configuration
+        """
+        return {
+            "has_cookies": len(self.get_domain_cookies(domain)) > 0,
+            "cookie_count": len(self.get_domain_cookies(domain)),
+            "rate_limit_config": self.rate_limiter.get_domain_config(domain)
+        } 

@@ -1,7 +1,7 @@
 {
   "check_interval": 10,
   "sample_size": 5,
-  "headless": true,
+  "headless": false,
   "page_timeout": 10000,
   "telegram": {
     "endpoint": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",

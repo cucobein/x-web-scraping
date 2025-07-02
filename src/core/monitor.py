@@ -46,7 +46,8 @@ class XMonitor:
         Returns:
             True if successful, False otherwise
         """
-        context = self.browser_manager.get_context()
+        # Create domain-specific context with cookies
+        context = await self.browser_manager.create_context_for_domain("x.com")
         if not context:
             await self.notification_service.notify_error(username, "Browser context not available")
             return False
@@ -80,6 +81,7 @@ class XMonitor:
             return False
         finally:
             await page.close()
+            await context.close()  # Close the context after use
     
     async def run_monitoring_cycle(self):
         """Run one complete monitoring cycle"""

@@ -206,11 +206,11 @@ class TestMonitorIntegration:
         
         with patch.object(monitor.twitter_scraper, 'get_latest_tweet', new=AsyncMock(return_value=new_tweet)):
             with patch.object(monitor.notification_service.telegram_service.http_client, 'post_form_data', new=AsyncMock(return_value=(401, error_response_data))) as mock_post:
-                with patch.object(monitor.browser_manager, 'get_context') as mock_context:
+                with patch.object(monitor.browser_manager, 'create_context_for_domain') as mock_create_context:
                     mock_page = AsyncMock()
                     mock_context_instance = AsyncMock()
                     mock_context_instance.new_page = AsyncMock(return_value=mock_page)
-                    mock_context.return_value = mock_context_instance
+                    mock_create_context.return_value = mock_context_instance
                     
                     # Telegram API fails but monitoring continues
                     result = await monitor.process_account("nasa")
@@ -221,8 +221,6 @@ class TestMonitorIntegration:
                     assert mock_post.call_count == 3
                     # Should still update to new tweet
                     assert monitor.tweet_repository.get_last_tweet_id("nasa") == new_tweet.unique_id
-    
-
     
     @pytest.mark.asyncio
     async def test_rate_limiting_integration(self, monitor, browser_manager, success_response_data):
@@ -317,11 +315,11 @@ class TestMonitorIntegration:
         
         with patch.object(monitor.twitter_scraper, 'get_latest_tweet', new=AsyncMock(return_value=new_tweet)):
             with patch.object(monitor.notification_service.telegram_service.http_client, 'post_form_data', new=mock_post) as mock_post:
-                with patch.object(monitor.browser_manager, 'get_context') as mock_context:
+                with patch.object(monitor.browser_manager, 'create_context_for_domain') as mock_create_context:
                     mock_page = AsyncMock()
                     mock_context_instance = AsyncMock()
                     mock_context_instance.new_page = AsyncMock(return_value=mock_page)
-                    mock_context.return_value = mock_context_instance
+                    mock_create_context.return_value = mock_context_instance
                     
                     # Should succeed after retries
                     result = await monitor.process_account("nasa")
@@ -349,11 +347,11 @@ class TestMonitorIntegration:
         
         with patch.object(monitor.twitter_scraper, 'get_latest_tweet', new=AsyncMock(return_value=new_tweet)):
             with patch.object(monitor.notification_service.telegram_service.http_client, 'post_form_data', new=mock_post) as mock_post:
-                with patch.object(monitor.browser_manager, 'get_context') as mock_context:
+                with patch.object(monitor.browser_manager, 'create_context_for_domain') as mock_create_context:
                     mock_page = AsyncMock()
                     mock_context_instance = AsyncMock()
                     mock_context_instance.new_page = AsyncMock(return_value=mock_page)
-                    mock_context.return_value = mock_context_instance
+                    mock_create_context.return_value = mock_context_instance
                     
                     # Should succeed even after all retries fail
                     result = await monitor.process_account("nasa")
