@@ -29,14 +29,13 @@ x-web-scraping/
 - **Telegram Notifications**: Real-time alerts via Telegram bot with retry logic
 - **Anti-Detection**: Rate limiting, user agent rotation, and random delays
 - **Browser Management**: Intelligent browser lifecycle management with Playwright
-- **Context Pooling**: Efficient, domain-specific browser context pooling for high concurrency and resource reuse
+- **Fresh Context Strategy**: Creates fresh browser contexts for each account to ensure reliability
 - **Configurable**: JSON-based configuration for accounts and settings
 - **State Persistence**: Saves and loads monitoring state
 - **CDMX Government Focus**: Pre-configured with Mexico City government accounts
 - **Extensible**: Modular architecture for easy extension
 - **Tested**: Comprehensive test suite with real HTML fixtures
 - **Git LFS**: Large HTML fixtures properly version controlled
-- **Context Pooling**: PoolManager provides efficient reuse of browser contexts per domain, reducing overhead and improving performance for high-frequency or multi-account monitoring. Pooling is enabled by default and can be configured or disabled in the BrowserManager constructor.
 
 ## 🚀 Quick Start
 
@@ -187,6 +186,7 @@ The monitor includes several anti-detection measures:
 - **Random Delays**: Unpredictable timing between requests
 - **Request Tracking**: Per-domain request counting and limiting
 - **Domain-Specific Cookie Injection**: Authenticated access with domain-specific cookie management
+- **Fresh Context Strategy**: Creates new browser contexts for each account to avoid context corruption issues
 - **Dynamic Content Handling**: Smart page loading detection for modern web apps
 
 ## 🏛️ CDMX Government Accounts
@@ -279,7 +279,7 @@ Feel free to extend this tool with:
 - [x] **Comprehensive testing**: Unit and integration tests with real HTML fixtures
 - [x] **Domain-specific rate limiting**: Intelligent backoff strategies per domain
 - [x] **Domain-specific cookie injection**: Authenticated access per platform
-- [ ] **Context pooling**: Efficient browser context reuse and management
+- [x] **Headless mode reliability**: Fixed context corruption issues with fresh context strategy
 - [ ] **Multi-platform support**: Facebook, Instagram, YouTube
 - [ ] **Database storage**: Persistent storage for monitoring history
 - [ ] **Web interface**: Dashboard for monitoring status
@@ -296,19 +296,6 @@ Feel free to extend this tool with:
 - **[Testing Guide](tests/README.md)**: Comprehensive testing documentation
 - **[Configuration](config/)**: Settings and configuration files
 
-## 🧠 Advanced: Context Pooling & PoolManager
-
-The app supports **domain-specific browser context pooling** for maximum efficiency and scalability:
-
-- **PoolManager**: Manages a pool of browser contexts for each domain (e.g., x.com, twitter.com)
-- **ContextPool**: Handles creation, reuse, and cleanup of contexts for each domain
-- **Automatic Integration**: Pooling is enabled by default; you can disable it by passing `enable_pooling=False` to `BrowserManager`
-- **Usage**:
-  - Use `create_context_for_domain(domain)` to get a context (from the pool if enabled)
-  - When done, call `return_context_to_pool(domain, context)` to return it for reuse
-- **Configuration**: Pool size is configurable via `max_contexts_per_domain` in `BrowserManager`
-- **Benefits**: Reduces browser overhead, increases throughput, and supports high-concurrency scraping
-
 ## 🔄 Monitoring Behavior
 
 The monitor now processes **all accounts in each cycle** for maximum efficiency:
@@ -317,7 +304,7 @@ The monitor now processes **all accounts in each cycle** for maximum efficiency:
 - **Full cycle processing**: Each monitoring cycle processes all configured accounts
 - **Rate limiting**: Domain-specific rate limiting handles timing between requests
 - **Cycle timing**: `check_interval` controls time between complete cycles
-- **Context pooling**: Efficient browser context reuse across all accounts
+- **Fresh contexts**: Each account gets a fresh browser context for maximum reliability
 
 **Example cycle:**
 ```
