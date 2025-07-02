@@ -163,13 +163,7 @@ class BrowserManager:
         if not self.browser:
             raise RuntimeError("Browser not started. Call start() first.")
         
-        # Use pooling if enabled
-        if self.enable_pooling and self.pool_manager:
-            cookies = self.get_domain_cookies(domain)
-            user_agent = self.rate_limiter.get_random_user_agent()
-            return await self.pool_manager.get_context_for_domain(domain, cookies, user_agent)
-        
-        # Fallback to direct context creation (backward compatibility)
+        # Always create fresh context (bypass pooling)
         user_agent = self.rate_limiter.get_random_user_agent()
         
         context = await self.browser.new_context(
@@ -194,6 +188,8 @@ class BrowserManager:
         if cookies:
             await context.add_cookies(cookies)
             print(f"🔐 Loaded cookies for {domain}")
+        else:
+            print(f"⚠️ No cookies found for {domain}")
         
         return context
     

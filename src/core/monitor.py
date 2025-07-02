@@ -74,9 +74,8 @@ class XMonitor:
             return False
         finally:
             await page.close()
-            # Return context to pool instead of closing it
-            # Note: Hardcoded to "x.com" - see comment above for domain awareness
-            await self.browser_manager.return_context_to_pool("x.com", context)
+            # Close context instead of returning to pool
+            await context.close()
     
     async def run_monitoring_cycle(self):
         """Run one complete monitoring cycle"""
