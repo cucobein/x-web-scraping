@@ -4,7 +4,7 @@ Core monitor that orchestrates all services
 import asyncio
 from typing import List
 
-from src.config.config_manager import ConfigManager
+from src.config.config_manager import ConfigManager, ConfigMode
 from src.services.browser_manager import BrowserManager
 from src.services.twitter_scraper import TwitterScraper
 from src.services.notification_service import NotificationService
@@ -17,7 +17,7 @@ class XMonitor:
     
     def __init__(self, config_path: str = "config/config.json"):
         # Initialize all services
-        self.config_manager = ConfigManager(config_path)
+        self.config_manager = ConfigManager(ConfigMode.FIREBASE, environment=None)
         self.browser_manager = BrowserManager(self.config_manager.headless)
         self.twitter_scraper = TwitterScraper(page_timeout=self.config_manager.page_timeout)
         self.notification_service = NotificationService(self.config_manager)
