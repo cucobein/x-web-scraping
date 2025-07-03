@@ -24,16 +24,36 @@ python -m pytest -v
 ### 2. Run Tests
 ```bash
 # Run all tests
-python -m pytest
+make test
 
 # Run with verbose output
-python -m pytest -v
+make test-verbose
+
+# Run with coverage
+make test-coverage
 
 # Run specific test file
 python -m pytest tests/unit/test_tweet_model_unit.py
 
-# Run with coverage
-python -m pytest --cov=src
+# Run tests matching a pattern
+python -m pytest -k "test_browser"
+```
+
+### 3. Code Quality Checks
+Before running tests, ensure code quality:
+
+```bash
+# Format code
+make format
+
+# Check quality
+make lint
+
+# Auto-fix issues
+make fix
+
+# Run all checks
+make check
 ```
 
 ## Test Structure

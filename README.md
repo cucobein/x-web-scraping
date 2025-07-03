@@ -121,9 +121,25 @@ make check
 - **mypy**: Type checking
 - **pre-commit**: Git hooks for automatic checks
 
+### Development Setup
+
+For a complete development environment setup:
+
+```bash
+# Complete setup (installs dependencies + pre-commit hooks)
+make setup
+
+# See all available commands
+make help
+```
+
+**Pre-commit hooks** will automatically run on every commit to ensure code quality.
+
 ## 📁 Documentation
 
 - **[Source Code](src/README.md)**: Detailed architecture and development guide
+- **[Development Guide](DEVELOPMENT.md)**: Complete development setup and workflow
+- **[Linting Guide](LINTING.md)**: Quick reference for code quality tools
 - **[Scripts](scripts/README.md)**: Utility scripts for development and testing
 - **[Tests](tests/README.md)**: Comprehensive testing documentation
 - **[Configuration](config/)**: Configuration files and settings

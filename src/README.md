@@ -254,6 +254,7 @@ Models ← Core ← Services ← Repositories
 3. **Add type hints** for better IDE support
 4. **Write tests** for new functionality
 5. **Update documentation** when adding new features
+6. **Run code quality checks** before committing
 
 ### **Code Organization**
 - **One class per file** for clarity
@@ -261,11 +262,33 @@ Models ← Core ← Services ← Repositories
 - **Clear docstrings** for public methods
 - **Error handling** at appropriate levels
 
+### **Code Quality Standards**
+- **Format code** with Black (88 character line length)
+- **Sort imports** with isort
+- **Follow PEP 8** style guidelines (enforced by flake8)
+- **Use type hints** (checked by mypy)
+- **Handle exceptions** properly (no bare `except:`)
+
 ### **Performance Considerations**
 - **Async/await** for I/O operations
 - **Caching** for expensive operations
 - **Resource management** (browser cleanup, file handles)
 - **Memory efficiency** for large datasets
+
+### **Development Workflow**
+```bash
+# Format code
+make format
+
+# Check quality
+make lint
+
+# Run tests
+make test
+
+# Auto-fix issues
+make fix
+```
 
 ## 🧠 Context Pooling & PoolManager
 

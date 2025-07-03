@@ -66,4 +66,27 @@ All scripts in this directory should:
 - **Have clear documentation**: Explain purpose and usage
 - **Follow project conventions**: Use same coding standards
 - **Be testable**: Include tests where appropriate
-- **Handle errors gracefully**: Provide useful error messages 
+- **Handle errors gracefully**: Provide useful error messages
+- **Pass code quality checks**: Format with Black, check with flake8
+
+## 🛠️ Code Quality
+
+Scripts follow the same code quality standards as the main project:
+
+```bash
+# Format scripts
+make format
+
+# Check script quality
+make lint
+
+# Auto-fix issues
+make fix
+```
+
+**Standards:**
+- **Black formatting**: 88 character line length
+- **isort imports**: Sorted and grouped
+- **flake8 compliance**: PEP 8 style guidelines
+- **Type hints**: Where applicable
+- **Error handling**: Specific exception types 
