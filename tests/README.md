@@ -6,6 +6,10 @@ This directory contains the comprehensive test suite for the X Web Scraping proj
 
 ### 1. Setup Test Environment
 ```bash
+# Set up environment (if not already done)
+cp .env.template .env
+# Edit .env and set ENVIRONMENT=dev for testing
+
 # HTML fixtures are automatically managed with Git LFS
 # No manual setup needed - fixtures are version controlled
 git lfs pull  # If you need to download LFS files
@@ -65,6 +69,47 @@ tests/
 │   └── test_pool_manager_unit.py
 └── README.md              # This file
 ```
+
+## 🌍 Environment Testing
+
+The test suite supports environment-based testing to ensure configuration works correctly across different environments.
+
+### Environment Variables in Testing
+
+- **`ENVIRONMENT`**: Controls which environment-specific settings are used during tests
+  - **Valid values**: `dev`, `prod`
+  - **Default**: `dev` (if not set or invalid)
+  - **Test usage**: Determines which configuration values are loaded from fixtures
+
+### Environment-Specific Test Scenarios
+
+**Development Environment (`ENVIRONMENT=dev`):**
+- Uses development-specific configuration values
+- Tests with development Firebase Remote Config keys
+- Faster timeouts and development settings
+
+**Production Environment (`ENVIRONMENT=prod`):**
+- Uses production-specific configuration values  
+- Tests with production Firebase Remote Config keys
+- Production timeouts and settings
+
+### Environment Testing in Integration Tests
+
+Integration tests use environment-specific fixtures:
+```python
+# Test with development environment
+config = ConfigManager(ConfigMode.FIXTURE, environment='dev')
+
+# Test with production environment  
+config = ConfigManager(ConfigMode.FIXTURE, environment='prod')
+```
+
+### Environment Fallback Testing
+
+The `ConfigMode.FALLBACK` mode tests fallback scenarios:
+- Tests behavior when Firebase config is invalid
+- Verifies fallback to local configuration
+- Ensures system resilience
 
 ## Test Classification
 

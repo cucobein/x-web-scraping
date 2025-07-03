@@ -15,20 +15,92 @@ src/
 └── core/            # Application orchestration
 ```
 
+## 🌍 Environment Management
+
+The application uses environment-based configuration to support different deployment scenarios.
+
+### Environment Variables
+
+- **`ENVIRONMENT`**: Controls which environment-specific settings are loaded
+  - **Valid values**: `dev`, `prod`
+  - **Default**: `dev` (if not set or invalid)
+  - **Usage**: Determines which Firebase Remote Config keys are used (e.g., `monitoring_check_interval_dev` vs `monitoring_check_interval_prod`)
+
+### Environment Behavior
+
+- **Development (`ENVIRONMENT=dev`)**: Uses development-specific configuration values
+- **Production (`ENVIRONMENT=prod`)**: Uses production-specific configuration values
+- **Invalid values**: Automatically defaults to `dev` with a warning message
+
+### Environment Implementation
+
+The environment system is implemented in `src/utils/env_helper.py`:
+```python
+from src.utils.env_helper import get_environment, is_development, is_production
+
+# Get current environment
+env = get_environment()  # Returns "dev" or "prod"
+
+# Check environment type
+if is_development():
+    # Use development settings
+    pass
+
+if is_production():
+    # Use production settings
+    pass
+```
+
 ## 📁 Layer Details
 
 ### **Config Layer** (`config/`)
-**Purpose**: Manage application configuration and settings
+**Purpose**: Manage application configuration with Firebase Remote Config support
 
 **Components:**
-- `config_manager.py`: Load and validate JSON configuration
-- Handles defaults, validation, and configuration caching
+- `config_manager.py`: Flexible configuration management with multiple modes
+- `firebase_config_manager.py`: Firebase Remote Config integration
+- `env_helper.py`: Environment detection and management utilities
+
+**Configuration Modes:**
+- **LOCAL**: Load from local JSON files (development)
+- **FIREBASE**: Load from Firebase Remote Config (production)
+- **FIXTURE**: Load from test fixtures (integration testing)
+- **FALLBACK**: Test fallback scenarios with invalid fixtures
+
+**Key Features:**
+- **Environment-aware**: Different settings for dev/prod environments
+- **Automatic loading**: Configuration loaded during instantiation
+- **Fallback support**: Falls back to local config if Firebase unavailable
+- **Property-based access**: Easy access to configuration values
+- **Caching**: Efficient configuration caching
+- **Type safety**: Strongly typed configuration properties
+
+**Usage:**
+```python
+from src.config.config_manager import ConfigManager, ConfigMode
+
+# Production: Firebase Remote Config with environment from ENV var
+config = ConfigManager(ConfigMode.FIREBASE)  # Uses ENVIRONMENT env var
+
+# Development: Local JSON with environment from ENV var
+config = ConfigManager(ConfigMode.LOCAL)  # Uses ENVIRONMENT env var
+
+# Testing: Fixture files with specific environment
+config = ConfigManager(ConfigMode.FIXTURE, environment='dev')
+
+# Access configuration
+accounts = config.accounts
+check_interval = config.check_interval
+telegram_enabled = config.telegram_enabled
+```
 
 **Responsibilities:**
-- Load configuration from files
-- Provide fallback defaults
-- Validate configuration values
+- Load configuration from multiple sources
+- Provide environment-specific settings
+- Handle configuration fallbacks
 - Cache configuration for performance
+- Validate configuration values
+- Support real-time configuration updates (Firebase)
 
 ### **Models Layer** (`models/`)
 **Purpose**: Define data structures and business entities

@@ -16,6 +16,7 @@ class ConfigMode(Enum):
     LOCAL = "local"      # Load from local config.json
     FIREBASE = "firebase"  # Load from Firebase Remote Config
     FIXTURE = "fixture"    # Load from test fixture file
+    FALLBACK = "fallback"  # Load from invalid fixture to test fallback
 
 
 class ConfigManager:
@@ -30,8 +31,11 @@ class ConfigManager:
         # Firebase configuration
         self.project_id = "web-scraper-e14ff"
         self.service_account_path = "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json"
+        
+        # Load configuration immediately
+        self._load()
     
-    def load(self) -> Dict[str, Any]:
+    def _load(self) -> Dict[str, Any]:
         """Load configuration based on mode"""
         if self._config is None:
             if self.mode == ConfigMode.LOCAL:
@@ -40,6 +44,8 @@ class ConfigManager:
                 self._config = self._load_from_firebase_with_fallback()
             elif self.mode == ConfigMode.FIXTURE:
                 self._config = self._load_from_fixture()
+            elif self.mode == ConfigMode.FALLBACK:
+                self._config = self._load_from_invalid_fixture_with_fallback()
         return self._config
     
     def refresh(self):
@@ -82,6 +88,21 @@ class ConfigManager:
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing fixture file: {e}")
             raise
+    
+    def _load_from_invalid_fixture_with_fallback(self) -> Dict[str, Any]:
+        """Load configuration from invalid fixture to test fallback"""
+        fixture_path = "tests/fixtures/firebase/invalid_config.json"
+        try:
+            with open(fixture_path, 'r') as f:
+                config = json.load(f)
+            print(f"✅ Config loaded from fallback fixture: {fixture_path}")
+            return config
+        except FileNotFoundError:
+            print(f"⚠️ Fallback fixture file {fixture_path} not found, falling back to local config")
+            return self._load_from_file()
+        except json.JSONDecodeError as e:
+            print(f"❌ Error parsing fallback fixture file: {e}, falling back to local config")
+            return self._load_from_file()
     
     async def _ensure_firebase_manager(self):
         """Ensure Firebase manager is initialized"""
@@ -139,55 +160,55 @@ class ConfigManager:
     @property
     def check_interval(self) -> int:
         """Get check interval in seconds"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             value = self._get_value("monitoring_check_interval", "60")
             return int(value)
         else:
-            return self.load().get("check_interval", 60)
+            return self._load().get("check_interval", 60)
     
     @property
     def headless(self) -> bool:
         """Get headless mode setting"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             value = self._get_value("monitoring_headless", "true")
             return value.lower() == "true"
         else:
-            return self.load().get("headless", True)
+            return self._load().get("headless", True)
     
     @property
     def page_timeout(self) -> int:
         """Get page timeout in milliseconds"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             value = self._get_value("monitoring_page_timeout", "5000")
             return int(value)
         else:
-            return self.load().get("page_timeout", 5000)
+            return self._load().get("page_timeout", 5000)
     
     @property
     def accounts(self) -> List[str]:
         """Get list of accounts to monitor"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             value = self._get_value("twitter_accounts", '["nasa"]')
             return self._parse_json_string(value)
         else:
-            return self.load().get("accounts", [])
+            return self._load().get("accounts", [])
     
     @property
     def telegram_endpoint(self) -> str:
         """Get Telegram endpoint URL"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             return self._get_value("telegram_endpoint", "")
         else:
-            telegram_config = self.load().get("telegram", {})
+            telegram_config = self._load().get("telegram", {})
             return telegram_config.get("endpoint", "")
     
     @property
     def telegram_api_key(self) -> str:
         """Get Telegram API key"""
-        if self.mode == ConfigMode.FIREBASE:
+        if self.mode in [ConfigMode.FIREBASE, ConfigMode.FIXTURE]:
             return self._get_value("telegram_api_key", "")
         else:
-            telegram_config = self.load().get("telegram", {})
+            telegram_config = self._load().get("telegram", {})
             return telegram_config.get("api_key", "")
     
     @property

@@ -39,6 +39,18 @@ x-web-scraping/
 
 ## 🚀 Quick Start
 
+### Environment Setup
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.template .env
+   ```
+
+2. **Configure your environment:**
+   Edit `.env` and set the `ENVIRONMENT` variable:
+   - `ENVIRONMENT=dev` - Development environment (default)
+   - `ENVIRONMENT=prod` - Production environment
+
 ### Installation
 
 1. **Install Python dependencies:**
@@ -142,11 +154,62 @@ To add cookie support for new domains (Facebook, Instagram, YouTube, etc.):
 - Keep your cookies secure and don't share them
 - The tool will work without cookies but with limited access
 
+## 🌍 Environment Management
+
+The application uses environment-based configuration to support different deployment scenarios.
+
+### Environment Variables
+
+The application uses a single environment variable to determine the configuration context:
+
+- **`ENVIRONMENT`**: Controls which environment-specific settings are loaded
+  - **Valid values**: `dev`, `prod`
+  - **Default**: `dev` (if not set or invalid)
+  - **Usage**: Determines which Firebase Remote Config keys are used (e.g., `monitoring_check_interval_dev` vs `monitoring_check_interval_prod`)
+
+### Environment Setup
+
+1. **Copy the template:**
+   ```bash
+   cp .env.template .env
+   ```
+
+2. **Configure your environment:**
+   ```bash
+   # For development
+   ENVIRONMENT=dev
+   
+   # For production
+   ENVIRONMENT=prod
+   ```
+
+### Environment Behavior
+
+- **Development (`ENVIRONMENT=dev`)**: Uses development-specific configuration values
+- **Production (`ENVIRONMENT=prod`)**: Uses production-specific configuration values
+- **Invalid values**: Automatically defaults to `dev` with a warning message
+
+The environment variable is used throughout the application to:
+- Load environment-specific Firebase Remote Config values
+- Create environment-specific configuration keys
+- Determine which settings to use for monitoring, notifications, and other features
+
 ## ⚙️ Configuration
 
-### Account Management
+The application supports multiple configuration modes for different environments:
 
-Edit `config/config.json` to customize:
+### Configuration Modes
+
+The application uses a flexible configuration system with the following modes:
+
+- **LOCAL**: Load configuration from local JSON files (default for development)
+- **FIREBASE**: Load configuration from Firebase Remote Config (production)
+- **FIXTURE**: Load configuration from test fixtures (integration testing)
+- **FALLBACK**: Test fallback scenarios with invalid fixtures
+
+### Local Configuration
+
+For development and testing, edit `config/config.json`:
 ```json
 {
   "accounts": [
@@ -155,6 +218,8 @@ Edit `config/config.json` to customize:
     "Bomberos_CDMX"
   ],
   "check_interval": 60,
+  "headless": true,
+  "page_timeout": 5000,
   "telegram": {
     "endpoint": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
     "api_key": "your-api-key-here"
@@ -162,14 +227,53 @@ Edit `config/config.json` to customize:
 }
 ```
 
+### Firebase Remote Config (Production)
+
+For production environments, the application uses Firebase Remote Config for centralized configuration management:
+
+- **Environment-aware**: Different settings for dev/prod environments
+- **Real-time updates**: Configuration can be updated without redeployment
+- **Fallback support**: Falls back to local config if Firebase is unavailable
+- **Secure**: Uses Firebase service account authentication
+
+**Firebase Configuration Keys:**
+- `monitoring_check_interval_dev/prod`: Seconds between monitoring cycles
+- `monitoring_headless_dev/prod`: Whether to run browser in headless mode
+- `monitoring_page_timeout_dev/prod`: Page load timeout in milliseconds
+- `twitter_accounts_dev/prod`: JSON array of accounts to monitor
+- `telegram_endpoint_dev/prod`: Telegram notification API endpoint
+- `telegram_api_key_dev/prod`: Telegram API key for authentication
+
+### Configuration Properties
+
+The application provides easy access to configuration through properties:
+
+```python
+from src.config.config_manager import ConfigManager, ConfigMode
+
+# Create config manager with Firebase mode (production)
+config = ConfigManager(ConfigMode.FIREBASE, environment='prod')
+
+# Access configuration values
+check_interval = config.check_interval      # int
+headless = config.headless                  # bool
+page_timeout = config.page_timeout          # int
+accounts = config.accounts                  # List[str]
+telegram_endpoint = config.telegram_endpoint # str
+telegram_api_key = config.telegram_api_key  # str
+telegram_enabled = config.telegram_enabled  # bool
+```
+
 ### Monitoring Parameters
 
 - `check_interval`: Seconds between monitoring cycles (default: 60)
 - `headless`: Whether to run browser in headless mode (default: True)
+- `page_timeout`: Page load timeout in milliseconds (default: 5000)
+- `accounts`: List of Twitter accounts to monitor
 
 ### Telegram Notifications
 
-Configure Telegram notifications in `config/config.json`:
+Configure Telegram notifications in your configuration:
 - `telegram.endpoint`: Telegram notification API endpoint
 - `telegram.api_key`: Your API key for authentication
 
@@ -177,17 +281,6 @@ When enabled, the monitor will send real-time notifications to Telegram whenever
 - **Retry Logic**: Exponential backoff for failed API calls
 - **Error Handling**: Graceful handling of API failures
 - **Message Formatting**: Rich formatting with tweet content and metadata
-
-### Anti-Detection Features
-
-The monitor includes several anti-detection measures:
-- **Domain-Specific Rate Limiting**: Intelligent rate limiting with domain-specific backoff strategies
-- **User Agent Rotation**: Random browser user agents to avoid detection
-- **Random Delays**: Unpredictable timing between requests
-- **Request Tracking**: Per-domain request counting and limiting
-- **Domain-Specific Cookie Injection**: Authenticated access with domain-specific cookie management
-- **Fresh Context Strategy**: Creates new browser contexts for each account to avoid context corruption issues
-- **Dynamic Content Handling**: Smart page loading detection for modern web apps
 
 ## 🏛️ CDMX Government Accounts
 
@@ -202,6 +295,21 @@ The tool comes pre-configured with official Mexico City government accounts incl
 
 ## 🧪 Testing Architecture
 
+### Comprehensive Test Suite
+The application includes a comprehensive test suite with multiple testing strategies:
+
+- **Unit Tests**: Individual component testing with mocked dependencies
+- **Integration Tests**: Component interaction testing with real fixtures
+- **Configuration Testing**: Tests for all configuration modes (LOCAL, FIREBASE, FIXTURE, FALLBACK)
+
+### Configuration Testing
+The test suite includes specialized tests for the configuration system:
+
+- **LOCAL Mode**: Tests local JSON configuration loading
+- **FIXTURE Mode**: Tests configuration loading from captured Firebase fixtures
+- **FALLBACK Mode**: Tests fallback scenarios when primary config fails
+- **Property Access**: Tests all configuration properties work correctly
+
 ### Real Data Testing
 - Uses actual HTML snapshots from Twitter profiles
 - Catches DOM changes when Twitter updates their site
@@ -212,6 +320,23 @@ The tool comes pre-configured with official Mexico City government accounts incl
 - **Unit Tests**: Individual component testing
 - **Integration Tests**: Component interaction testing
 - **Fixtures**: Real HTML data for testing
+- **Configuration Tests**: All configuration modes and scenarios
+
+### Running Tests
+```bash
+# Run all tests
+python -m pytest
+
+# Run with verbose output
+python -m pytest -v
+
+# Run with coverage
+python -m pytest --cov=src
+
+# Run specific test categories
+python -m pytest tests/unit/           # Unit tests only
+python -m pytest tests/integration/    # Integration tests only
+```
 
 ## 🔧 Development
 
@@ -280,6 +405,9 @@ Feel free to extend this tool with:
 - [x] **Domain-specific rate limiting**: Intelligent backoff strategies per domain
 - [x] **Domain-specific cookie injection**: Authenticated access per platform
 - [x] **Headless mode reliability**: Fixed context corruption issues with fresh context strategy
+- [x] **Firebase Remote Config**: Centralized configuration management with environment support
+- [x] **Flexible configuration system**: Multiple modes (LOCAL, FIREBASE, FIXTURE, FALLBACK)
+- [x] **Configuration testing**: Comprehensive tests for all configuration scenarios
 - [ ] **Multi-platform support**: Facebook, Instagram, YouTube
 - [ ] **Database storage**: Persistent storage for monitoring history
 - [ ] **Web interface**: Dashboard for monitoring status
