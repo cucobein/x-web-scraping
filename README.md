@@ -29,6 +29,7 @@ x-web-scraping/
 - **Telegram Notifications**: Real-time alerts via Telegram bot with retry logic
 - **Anti-Detection**: Rate limiting, user agent rotation, and random delays
 - **Browser Management**: Intelligent browser lifecycle management with Playwright
+- **Conditional Browser Modes**: Optimized configurations for headless (production) and non-headless (development) modes
 - **Fresh Context Strategy**: Creates fresh browser contexts for each account to ensure reliability
 - **Configurable**: JSON-based configuration for accounts and settings
 - **State Persistence**: Saves and loads monitoring state
@@ -98,6 +99,41 @@ python -m pytest --cov=src
 - **[Scripts](scripts/README.md)**: Utility scripts for development and testing
 - **[Tests](tests/README.md)**: Comprehensive testing documentation
 - **[Configuration](config/)**: Configuration files and settings
+
+## 🌐 Browser Modes
+
+The application supports two browser modes optimized for different use cases:
+
+### **Headless Mode** (Production)
+- **Default**: `headless=True` in configuration
+- **Purpose**: Production monitoring and automated scraping
+- **Features**: 
+  - Maximum anti-detection capabilities
+  - Privacy-bypassing settings for stealth operation
+  - Performance optimized (disabled images, extensions)
+  - User agent rotation
+- **Status**: ✅ Fully functional and production-ready
+
+### **Non-Headless Mode** (Development)
+- **Configuration**: `headless=False` in configuration
+- **Purpose**: Development, debugging, and visual verification
+- **Features**:
+  - Pro-normal-browser settings
+  - Standard browser headers
+  - User agent rotation
+  - Visual browser window for debugging
+- **Status**: ⚠️ Currently experiencing detection issues with X.com
+- **Note**: Primarily intended for development purposes. Production use should utilize headless mode.
+
+### **Mode Selection**
+The browser mode is controlled by the `headless` parameter in the configuration:
+```python
+# Production (recommended)
+browser_manager = BrowserManager(headless=True)
+
+# Development (limited functionality)
+browser_manager = BrowserManager(headless=False)
+```
 
 ## 🍪 Cookie Setup
 

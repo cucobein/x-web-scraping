@@ -119,7 +119,7 @@ telegram_enabled = config.telegram_enabled
 **Purpose**: External interactions and business logic
 
 **Components:**
-- `browser_manager.py`: Playwright browser lifecycle management with domain-specific cookie injection, rate limiting, and context pooling
+- `browser_manager.py`: Playwright browser lifecycle management with conditional headless/non-headless configurations, domain-specific cookie injection, rate limiting, and context pooling
 - `pool_manager.py`: PoolManager for efficient, domain-specific browser context pooling
 - `context_pool.py`: ContextPool for per-domain context reuse and cleanup
 - `twitter_scraper.py`: Twitter-specific scraping logic with anti-detection
@@ -138,6 +138,7 @@ telegram_enabled = config.telegram_enabled
 - Manage domain-specific cookie injection and authentication
 - Efficiently pool and reuse browser contexts per domain for high concurrency
 - Manage request timing and delays
+- Implement conditional browser configurations for headless vs non-headless modes
 - Implement a robust, centralized logging system for all core services and modules
 
 ### **Repository Layer** (`repositories/`)
@@ -277,6 +278,58 @@ Models ← Core ← Services ← Repositories
 - **Benefits**: Reduces resource usage, increases throughput, and supports high-concurrency scraping workflows.
 - **Context pooling**: All pooling logic is tested with mocks only; no real browser or network calls in unit tests
 - **No batching**: Removed legacy batching logic; all accounts processed per cycle
+
+## 🌐 Browser Configuration Modes
+
+The `BrowserManager` implements conditional configurations based on headless mode to optimize for different use cases:
+
+### **Headless Mode** (`headless=True`)
+**Purpose**: Production-ready configuration with maximum anti-detection capabilities
+
+**Features**:
+- **Anti-detection settings**: `bypass_csp=True`, `ignore_https_errors=True`
+- **Privacy headers**: `DNT: "1"` header
+- **Browser arguments**: Extensive anti-detection flags
+- **User agent rotation**: Random user agent selection
+- **Performance optimized**: Disabled images, extensions, plugins
+
+**Use case**: Production monitoring, automated scraping
+
+### **Non-Headless Mode** (`headless=False`)
+**Purpose**: Development and debugging configuration (currently limited)
+
+**Features**:
+- **Pro-normal-browser settings**: `accept_downloads=True`, `has_touch=False`, `is_mobile=False`
+- **Standard headers**: Normal browser headers (`sec-ch-ua`, `sec-fetch-*`)
+- **User agent rotation**: Random user agent selection
+- **Locale/timezone**: `en-US` locale, `America/New_York` timezone
+
+**Current limitation**: May trigger X.com's privacy extension detection
+**Use case**: Development, debugging, visual verification
+
+### **Configuration Logic**
+```python
+# Headless mode: Anti-detection settings
+if self.headless:
+    context_settings.update({
+        "bypass_csp": True,
+        "ignore_https_errors": True,
+    })
+    context_settings["extra_http_headers"]["DNT"] = "1"
+
+# Non-headless mode: Pro-normal-browser settings
+else:
+    context_settings.update({
+        "accept_downloads": True,
+        "has_touch": False,
+        "is_mobile": False,
+        "locale": "en-US",
+        "timezone_id": "America/New_York",
+    })
+    # Add standard browser headers
+```
+
+**Note**: Non-headless mode is currently experiencing detection issues with X.com and is primarily intended for development purposes. Production use should utilize headless mode.
 
 ## 📝 Logging System
 
