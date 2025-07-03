@@ -3,6 +3,7 @@
 X Feed Monitor - Main Entry Point
 """
 import asyncio
+
 import nest_asyncio
 
 from src.core.monitor import XMonitor
@@ -18,4 +19,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

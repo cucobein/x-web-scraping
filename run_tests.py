@@ -2,26 +2,25 @@
 """
 Simple test runner for X Feed Monitor
 """
-import subprocess
 import sys
-from pathlib import Path
+import subprocess
 
 
 def run_tests(test_path=None):
     """Run tests with pytest"""
     cmd = ["python", "-m", "pytest"]
-    
+
     if test_path:
         cmd.append(test_path)
     else:
         cmd.append("tests/")
-    
+
     cmd.extend(["-v", "--tb=short"])
-    
+
     print("🧪 Running tests...")
     print(f"Command: {' '.join(cmd)}")
     print("-" * 50)
-    
+
     result = subprocess.run(cmd)
     return result.returncode == 0
 
@@ -44,7 +43,7 @@ def run_specific_test(test_file):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         command = sys.argv[1]
-        
+
         if command == "unit":
             success = run_unit_tests()
         elif command == "integration":
@@ -57,10 +56,10 @@ if __name__ == "__main__":
     else:
         # Default: run all tests
         success = run_tests()
-    
+
     if success:
         print("\n✅ All tests passed!")
         sys.exit(0)
     else:
         print("\n❌ Some tests failed!")
-        sys.exit(1) 
+        sys.exit(1)

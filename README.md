@@ -93,6 +93,34 @@ python -m pytest -v
 python -m pytest --cov=src
 ```
 
+### Code Quality
+
+The project uses several tools to maintain code quality:
+
+```bash
+# Install development dependencies (includes linting tools)
+make install-dev
+
+# Format code automatically
+make format
+
+# Check code quality
+make lint
+
+# Auto-fix issues
+make fix
+
+# Run all checks
+make check
+```
+
+**Available tools:**
+- **Black**: Code formatting
+- **isort**: Import sorting
+- **flake8**: Style and error checking
+- **mypy**: Type checking
+- **pre-commit**: Git hooks for automatic checks
+
 ## 📁 Documentation
 
 - **[Source Code](src/README.md)**: Detailed architecture and development guide
