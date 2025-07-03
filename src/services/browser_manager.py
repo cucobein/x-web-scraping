@@ -116,22 +116,29 @@ class BrowserManager:
         # Use rotating user agent for anti-detection
         user_agent = self.rate_limiter.get_random_user_agent()
         
-        self.context = await self.browser.new_context(
-            user_agent=user_agent,
-            viewport={"width": 1280, "height": 800},
-            # Add headless-specific settings
-            java_script_enabled=True,
-            bypass_csp=True,  # Bypass Content Security Policy
-            ignore_https_errors=True,
-            extra_http_headers={
+        # Prepare context settings based on headless mode
+        context_settings = {
+            "user_agent": user_agent,
+            "viewport": {"width": 1280, "height": 800},
+            "java_script_enabled": True,
+            "extra_http_headers": {
                 "Accept-Language": "en-US,en;q=0.9",
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "DNT": "1",
                 "Connection": "keep-alive",
                 "Upgrade-Insecure-Requests": "1"
             }
-        )
+        }
+        
+        # Add headless-specific settings only in headless mode
+        if self.headless:
+            context_settings.update({
+                "bypass_csp": True,  # Bypass Content Security Policy
+                "ignore_https_errors": True,
+            })
+            context_settings["extra_http_headers"]["DNT"] = "1"
+        
+        self.context = await self.browser.new_context(**context_settings)
         
         # Note: Cookies are now injected per-domain when creating contexts
         # This maintains backward compatibility for the single context approach
@@ -154,22 +161,29 @@ class BrowserManager:
         # Always create fresh context (bypass pooling)
         user_agent = self.rate_limiter.get_random_user_agent()
         
-        context = await self.browser.new_context(
-            user_agent=user_agent,
-            viewport={"width": 1280, "height": 800},
-            # Add headless-specific settings
-            java_script_enabled=True,
-            bypass_csp=True,  # Bypass Content Security Policy
-            ignore_https_errors=True,
-            extra_http_headers={
+        # Prepare context settings based on headless mode
+        context_settings = {
+            "user_agent": user_agent,
+            "viewport": {"width": 1280, "height": 800},
+            "java_script_enabled": True,
+            "extra_http_headers": {
                 "Accept-Language": "en-US,en;q=0.9",
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "DNT": "1",
                 "Connection": "keep-alive",
                 "Upgrade-Insecure-Requests": "1"
             }
-        )
+        }
+        
+        # Add headless-specific settings only in headless mode
+        if self.headless:
+            context_settings.update({
+                "bypass_csp": True,  # Bypass Content Security Policy
+                "ignore_https_errors": True,
+            })
+            context_settings["extra_http_headers"]["DNT"] = "1"
+        
+        context = await self.browser.new_context(**context_settings)
         
         # Inject domain-specific cookies
         cookies = self.get_domain_cookies(domain)

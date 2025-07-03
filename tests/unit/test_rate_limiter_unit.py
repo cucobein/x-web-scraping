@@ -61,7 +61,7 @@ class TestRateLimiter:
     
     def test_initialization(self, rate_limiter):
         """Test rate limiter initialization"""
-        assert rate_limiter.config is not None
+        assert rate_limiter.default_config is not None
         assert len(rate_limiter.user_agents) > 0
         assert rate_limiter.request_times == {}
         assert rate_limiter.backoff_until == {}
@@ -83,7 +83,7 @@ class TestRateLimiter:
         for _ in range(10):
             delay = rate_limiter.get_random_delay()
             delays.append(delay)
-            assert rate_limiter.config.min_delay_seconds <= delay <= rate_limiter.config.max_delay_seconds
+            assert rate_limiter.default_config.min_delay_seconds <= delay <= rate_limiter.default_config.max_delay_seconds
         
         # Should have some variety
         assert len(set(delays)) > 1

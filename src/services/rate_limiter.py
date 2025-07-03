@@ -31,8 +31,6 @@ class RateLimiter:
             config: Rate limiting configuration (used as default for domains without specific config)
         """
         self.default_config = config or RateLimitConfig()
-        # Keep backward compatibility with existing tests
-        self.config = self.default_config
         self.request_times: Dict[str, deque] = defaultdict(lambda: deque())
         self.backoff_until: Dict[str, float] = defaultdict(float)
         
