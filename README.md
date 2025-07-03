@@ -442,3 +442,41 @@ Cycle 3: Process all 12 accounts → Wait 10 seconds
 ```
 
 This approach eliminates duplicate processing within cycles and lets the sophisticated rate limiter handle all timing concerns.
+
+## 📝 Logging System
+
+The application features a robust logging system for both development and production use:
+
+- **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Console Output**: Color-coded and multi-line for readability
+- **File Output**: All logs are written to `logs/app.log` (with automatic rotation, not committed to git)
+- **Context Support**: Structured context data is logged as pretty-printed JSON
+- **Exception Logging**: Full stack traces for errors and exceptions
+- **No External Dependencies**: All logging is local and free
+
+### Example Log Output
+```
+[2025-07-03 03:26:08] [ERROR] [DEV] An error occurred
+  Exception: ValueError: Test error for logging
+  Context:
+{
+  "component": "example"
+}
+  Traceback:
+Traceback (most recent call last):
+  ...
+ValueError: Test error for logging
+```
+
+### Log File Location
+- All logs are stored in `logs/app.log` (rotated automatically)
+- The `logs/` directory is ignored by git and will not be committed
+
+### How to Use
+- All core services and modules use the logger automatically
+- For custom logging, use the `LoggerService` class:
+  ```python
+  from src.services.logger_service import LoggerService
+  logger = LoggerService()
+  logger.info("Something happened", {"context": "value"})
+  ```

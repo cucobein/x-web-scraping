@@ -127,6 +127,7 @@ telegram_enabled = config.telegram_enabled
 - `telegram_notification_service.py`: Telegram-specific notification service with exponential backoff
 - `http_client.py`: Reusable HTTP client for external APIs
 - `rate_limiter.py`: Domain-specific rate limiting with intelligent backoff strategies
+- `logger_service.py`: Robust, centralized logging system for all core services and modules
 
 **Responsibilities:**
 - Manage external dependencies (browser, APIs)
@@ -137,6 +138,7 @@ telegram_enabled = config.telegram_enabled
 - Manage domain-specific cookie injection and authentication
 - Efficiently pool and reuse browser contexts per domain for high concurrency
 - Manage request timing and delays
+- Implement a robust, centralized logging system for all core services and modules
 
 ### **Repository Layer** (`repositories/`)
 **Purpose**: Data persistence and state management
@@ -275,3 +277,35 @@ Models ← Core ← Services ← Repositories
 - **Benefits**: Reduces resource usage, increases throughput, and supports high-concurrency scraping workflows.
 - **Context pooling**: All pooling logic is tested with mocks only; no real browser or network calls in unit tests
 - **No batching**: Removed legacy batching logic; all accounts processed per cycle
+
+## 📝 Logging System
+
+The codebase uses a robust, centralized logging system for all core services and modules:
+
+- **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **Console Output**: Color-coded, multi-line, and context-rich for easy reading
+- **File Output**: All logs are written to `logs/app.log` with automatic rotation
+- **Context Support**: Structured context data is logged as pretty-printed JSON
+- **Exception Logging**: Full stack traces for errors and exceptions
+- **Integration**: All services accept an optional `logger` parameter; if not provided, a default logger is used
+
+### LoggerService Usage
+
+```python
+from src.services.logger_service import LoggerService
+logger = LoggerService()
+logger.info("Something happened", {"context": "value"})
+logger.error("Something failed", {"error": str(e)})
+```
+
+### Service Integration Example
+
+```python
+from src.services.browser_manager import BrowserManager
+from src.services.logger_service import LoggerService
+
+logger = LoggerService()
+browser_manager = BrowserManager(headless=True, logger=logger)
+```
+
+All log files are stored in `logs/` (ignored by git). The logging system is robust, extensible, and easy to use throughout the codebase.

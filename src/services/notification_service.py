@@ -5,20 +5,23 @@ from typing import Optional
 from src.models.tweet import Tweet
 from src.services.telegram_notification_service import TelegramNotificationService
 from src.config.config_manager import ConfigManager
+from src.services.logger_service import LoggerService
 
 
 class NotificationService:
     """Handles notifications and alerts"""
     
-    def __init__(self, config_manager: Optional[ConfigManager] = None):
+    def __init__(self, config_manager: Optional[ConfigManager] = None, logger: Optional[LoggerService] = None):
         """
         Initialize notification service
         
         Args:
             config_manager: Configuration manager instance
+            logger: Optional logger service
         """
         self.config_manager = config_manager
         self.telegram_service = None
+        self.logger = logger or LoggerService()
         
         # Initialize Telegram service if configured
         if self.config_manager and self.config_manager.telegram_enabled:
@@ -35,23 +38,22 @@ class NotificationService:
             tweet: The new tweet to notify about
         """
         # Console notification (always show)
-        print(f"🔔 NEW POST: @{tweet.username}")
-        print(f"   Time: {tweet.timestamp}")
-        print(f"   Content: {tweet.content[:200]}...")
-        if tweet.url:
-            print(f"   URL: {tweet.url}")
-        print("-" * 50)
+        self.logger.info(f"NEW POST: @{tweet.username}", {
+            "time": tweet.timestamp,
+            "content": tweet.content[:200],
+            "url": tweet.url
+        })
         
         # Telegram notification (if configured)
         if self.telegram_service:
             try:
                 response = await self.telegram_service.send_tweet_notification(tweet)
                 if response.success:
-                    print(f"✅ Telegram notification sent successfully")
+                    self.logger.info("Telegram notification sent successfully")
                 else:
-                    print(f"⚠️ Telegram notification failed: {response.error}")
+                    self.logger.warning("Telegram notification failed", {"error": response.error})
             except Exception as e:
-                print(f"❌ Telegram notification error: {e}")
+                self.logger.error("Telegram notification error", {"error": str(e)})
     
     async def notify_error(self, username: str, error: str):
         """
@@ -61,7 +63,7 @@ class NotificationService:
             username: Username that caused the error
             error: Error message
         """
-        print(f"⚠️ Error with @{username}: {error}")
+        self.logger.warning(f"Error with @{username}", {"error": error})
     
     async def notify_status(self, message: str):
         """
@@ -70,4 +72,4 @@ class NotificationService:
         Args:
             message: Status message
         """
-        print(message) 
+        self.logger.info(message) 

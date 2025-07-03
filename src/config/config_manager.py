@@ -9,6 +9,7 @@ from enum import Enum
 
 from src.config.firebase_config_manager import FirebaseConfigManager
 from src.utils.env_helper import get_environment
+from src.services.logger_service import LoggerService
 
 
 class ConfigMode(Enum):
@@ -22,11 +23,12 @@ class ConfigMode(Enum):
 class ConfigManager:
     """Manages application configuration with Firebase Remote Config support"""
     
-    def __init__(self, mode: ConfigMode, environment: str = None):
+    def __init__(self, mode: ConfigMode, environment: str = None, logger: Optional[LoggerService] = None):
         self.mode = mode
         self.environment = environment or get_environment()
         self._config = None
         self._firebase_manager = None
+        self.logger = logger or LoggerService()
         
         # Firebase configuration
         self.project_id = "web-scraper-e14ff"
@@ -56,17 +58,17 @@ class ConfigManager:
         try:
             new_config = self._load_from_firebase_with_fallback()
             self._config = new_config  # Update with new values
-            print("✅ Configuration refreshed from Firebase")
+            self.logger.info("Configuration refreshed from Firebase")
         except Exception as e:
             # Keep existing cached values - don't fall back to local JSON
-            print(f"⚠️ Firebase refresh failed: {e}, keeping existing config")
+            self.logger.warning("Firebase refresh failed, keeping existing config", {"error": str(e)})
     
     def _load_from_firebase_with_fallback(self) -> Dict[str, Any]:
         """Load from Firebase with fallback to local JSON"""
         try:
             return asyncio.run(self._load_from_firebase())
         except Exception as e:
-            print(f"⚠️ Firebase config failed: {e}, falling back to local config")
+            self.logger.warning("Firebase config failed, falling back to local config", {"error": str(e)})
             return self._load_from_file()
     
     async def _load_from_firebase(self) -> Dict[str, Any]:
@@ -80,13 +82,13 @@ class ConfigManager:
         try:
             with open(fixture_path, 'r') as f:
                 config = json.load(f)
-            print(f"✅ Config loaded from fixture: {fixture_path}")
+            self.logger.info(f"Config loaded from fixture: {fixture_path}")
             return config
         except FileNotFoundError:
-            print(f"⚠️ Fixture file {fixture_path} not found, using defaults")
+            self.logger.warning(f"Fixture file {fixture_path} not found, using defaults")
             return self._get_default_config()
         except json.JSONDecodeError as e:
-            print(f"❌ Error parsing fixture file: {e}")
+            self.logger.error(f"Error parsing fixture file", {"error": str(e)})
             raise
     
     def _load_from_invalid_fixture_with_fallback(self) -> Dict[str, Any]:
@@ -95,13 +97,13 @@ class ConfigManager:
         try:
             with open(fixture_path, 'r') as f:
                 config = json.load(f)
-            print(f"✅ Config loaded from fallback fixture: {fixture_path}")
+            self.logger.info(f"Config loaded from fallback fixture: {fixture_path}")
             return config
         except FileNotFoundError:
-            print(f"⚠️ Fallback fixture file {fixture_path} not found, falling back to local config")
+            self.logger.warning(f"Fallback fixture file {fixture_path} not found, falling back to local config")
             return self._load_from_file()
         except json.JSONDecodeError as e:
-            print(f"❌ Error parsing fallback fixture file: {e}, falling back to local config")
+            self.logger.error(f"Error parsing fallback fixture file, falling back to local config", {"error": str(e)})
             return self._load_from_file()
     
     async def _ensure_firebase_manager(self):
@@ -115,13 +117,13 @@ class ConfigManager:
         try:
             with open(config_path, 'r') as f:
                 config = json.load(f)
-            print(f"✅ Config loaded from {config_path}")
+            self.logger.info(f"Config loaded from {config_path}")
             return config
         except FileNotFoundError:
-            print(f"⚠️ Config file {config_path} not found, using defaults")
+            self.logger.warning(f"Config file {config_path} not found, using defaults")
             return self._get_default_config()
         except json.JSONDecodeError as e:
-            print(f"❌ Error parsing config file: {e}")
+            self.logger.error(f"Error parsing config file", {"error": str(e)})
             raise
     
     def _get_default_config(self) -> Dict[str, Any]:

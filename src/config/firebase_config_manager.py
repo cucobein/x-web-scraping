@@ -10,23 +10,26 @@ import firebase_admin
 from firebase_admin import credentials, remote_config
 
 from src.utils.env_helper import get_environment
+from src.services.logger_service import LoggerService
 
 
 class FirebaseConfigManager:
     """Manages configuration from Firebase Remote Config"""
     
-    def __init__(self, project_id: str, service_account_path: str):
+    def __init__(self, project_id: str, service_account_path: str, logger: Optional[LoggerService] = None):
         """
         Initialize Firebase Config Manager
         
         Args:
             project_id: Firebase project ID
             service_account_path: Path to service account JSON file
+            logger: LoggerService instance
         """
         self.project_id = project_id
         self.service_account_path = service_account_path
         self._config_cache: Optional[Dict[str, Any]] = None
         self._initialized = False
+        self.logger = logger or LoggerService()
         
     async def _initialize_firebase(self):
         """Initialize Firebase Admin SDK if not already done"""
@@ -38,9 +41,9 @@ class FirebaseConfigManager:
                 })
                 remote_config.init_server_template()
                 self._initialized = True
-                print("✅ Firebase initialized successfully")
+                self.logger.info("Firebase initialized successfully")
             except Exception as e:
-                print(f"❌ Firebase initialization failed: {e}")
+                self.logger.error("Firebase initialization failed", {"error": str(e)})
                 raise
     
     async def _load_config_from_firebase(self) -> Dict[str, Any]:
@@ -70,7 +73,7 @@ class FirebaseConfigManager:
             return config
             
         except Exception as e:
-            print(f"❌ Failed to load config from Firebase: {e}")
+            self.logger.error("Failed to load config from Firebase", {"error": str(e)})
             raise
     
     def _get_fallback_config(self) -> Dict[str, Any]:
@@ -101,12 +104,12 @@ class FirebaseConfigManager:
         """
         try:
             config = await self._load_config_from_firebase()
-            print("✅ Configuration loaded from Firebase")
+            self.logger.info("Configuration loaded from Firebase")
             return config
         except Exception as e:
-            print(f"⚠️ Firebase config failed, using fallback: {e}")
+            self.logger.warning("Firebase config failed, using fallback", {"error": str(e)})
             config = self._get_fallback_config()
-            print("✅ Using fallback configuration")
+            self.logger.info("Using fallback configuration")
             return config
     
     def get_value(self, key: str, config: Dict[str, Any]) -> Any:

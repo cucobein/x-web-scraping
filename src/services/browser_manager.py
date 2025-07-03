@@ -6,24 +6,27 @@ import json
 from pathlib import Path
 from playwright.async_api import async_playwright, Browser, BrowserContext
 from src.services.rate_limiter import RateLimiter, RateLimitConfig
+from src.services.logger_service import LoggerService
 
 
 class BrowserManager:
     """Manages browser lifecycle and context with anti-detection features"""
     
-    def __init__(self, headless: bool = True, rate_limiter: Optional[RateLimiter] = None):
+    def __init__(self, headless: bool = True, rate_limiter: Optional[RateLimiter] = None, logger: Optional[LoggerService] = None):
         """
         Initialize browser manager
         
         Args:
             headless: Whether to run browser in headless mode
             rate_limiter: Optional rate limiter for anti-detection
+            logger: Optional logger service
         """
         self.headless = headless
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.playwright = None
         self.rate_limiter = rate_limiter or RateLimiter()
+        self.logger = logger or LoggerService()
         
         # Domain-specific cookie configurations
         self.domain_cookies = self._load_domain_cookies()
@@ -65,7 +68,7 @@ class BrowserManager:
             return cookie_data
             
         except Exception as e:
-            print(f"❌ Error loading cookies from {file_path}: {e}")
+            self.logger.error(f"Error loading cookies from {file_path}", {"error": str(e)})
             return []
     
     def get_domain_cookies(self, domain: str) -> List[dict]:
@@ -172,9 +175,9 @@ class BrowserManager:
         cookies = self.get_domain_cookies(domain)
         if cookies:
             await context.add_cookies(cookies)
-            print(f"🔐 Loaded cookies for {domain}")
+            self.logger.info(f"Loaded cookies for {domain}")
         else:
-            print(f"⚠️ No cookies found for {domain}")
+            self.logger.warning(f"No cookies found for {domain}")
         
         return context
     
