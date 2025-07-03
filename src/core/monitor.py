@@ -99,6 +99,9 @@ class XMonitor:
             while self.is_running:
                 await self.run_monitoring_cycle()
                 
+                # Refresh configuration during idle period
+                self.config_manager.refresh()
+                
                 check_interval = self.config_manager.check_interval
                 await self.notification_service.notify_status(f"✅ Waiting {check_interval}s...")
                 await asyncio.sleep(check_interval)
