@@ -43,6 +43,7 @@ class LoggerService:
         log_file_path: str = "logs/app.log",
         max_file_size_mb: int = 10,
         backup_count: int = 5,
+        json_output: bool = False,
     ):
         """
         Initialize logger service
@@ -51,6 +52,7 @@ class LoggerService:
             log_file_path: Path to log file
             max_file_size_mb: Maximum log file size in MB before rotation
             backup_count: Number of backup files to keep
+            json_output: Whether to output logs in JSON format for machine parsing
         """
         # Only initialize once
         if self._initialized:
@@ -59,6 +61,7 @@ class LoggerService:
         self.log_file_path = log_file_path
         self.max_file_size_mb = max_file_size_mb
         self.backup_count = backup_count
+        self.json_output = json_output
 
         # Async logging setup
         self._async_queue = Queue()
@@ -80,6 +83,10 @@ class LoggerService:
         if cls._instance is None:
             cls._instance = LoggerService()
         return cls._instance
+
+    def set_json_output(self, enabled: bool):
+        """Enable or disable JSON output format"""
+        self.json_output = enabled
 
     def _ensure_log_directory(self):
         """Ensure log directory exists"""
@@ -118,6 +125,35 @@ class LoggerService:
     def _get_timestamp(self) -> str:
         """Get current timestamp for logging"""
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def _format_json_log(
+        self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Format log entry as JSON for machine parsing"""
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "level": level.value.upper(),
+            "environment": get_environment().upper(),
+            "message": message,
+        }
+        
+        if context is not None:
+            if not isinstance(context, dict):
+                context = {"context": str(context)}
+            log_entry["context"] = context
+            
+        try:
+            return json.dumps(log_entry, default=str)
+        except Exception as e:
+            # Fallback to string representation if JSON serialization fails
+            print(f"⚠️ LoggerService: Failed to serialize JSON log: {e}")
+            return json.dumps({
+                "timestamp": datetime.now().isoformat(),
+                "level": level.value.upper(),
+                "environment": get_environment().upper(),
+                "message": message,
+                "context": {"error": "JSON serialization failed", "original_context": str(context)}
+            }, default=str)
 
     def _start_async_worker(self):
         """Start the async worker if not already running"""
@@ -190,31 +226,43 @@ class LoggerService:
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
     ):
         """Log message to console with appropriate formatting"""
-        formatted_message = self._format_message(level, message, context)
+        if self.json_output:
+            # JSON format for machine parsing
+            json_log = self._format_json_log(level, message, context)
+            print(json_log)
+        else:
+            # Human-readable format
+            formatted_message = self._format_message(level, message, context)
 
-        # Use different colors/prefixes for different levels
-        if level == LogLevel.ERROR or level == LogLevel.CRITICAL:
-            print(f"❌ {formatted_message}")
-        elif level == LogLevel.WARNING:
-            print(f"⚠️ {formatted_message}")
-        elif level == LogLevel.INFO:
-            print(f"ℹ️ {formatted_message}")
-        elif level == LogLevel.DEBUG:
-            print(f"🔍 {formatted_message}")
+            # Use different colors/prefixes for different levels
+            if level == LogLevel.ERROR or level == LogLevel.CRITICAL:
+                print(f"❌ {formatted_message}")
+            elif level == LogLevel.WARNING:
+                print(f"⚠️ {formatted_message}")
+            elif level == LogLevel.INFO:
+                print(f"ℹ️ {formatted_message}")
+            elif level == LogLevel.DEBUG:
+                print(f"🔍 {formatted_message}")
 
-        # Add extra spacing for errors and critical messages
-        if level in [LogLevel.ERROR, LogLevel.CRITICAL]:
-            print()
+            # Add extra spacing for errors and critical messages
+            if level in [LogLevel.ERROR, LogLevel.CRITICAL]:
+                print()
 
     def _log_to_file(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
     ):
         """Log message to file"""
         try:
-            formatted_message = self._format_message(level, message, context)
-
-            with open(self.log_file_path, "a", encoding="utf-8") as f:
-                f.write(formatted_message + "\n")
+            if self.json_output:
+                # JSON format for machine parsing
+                json_log = self._format_json_log(level, message, context)
+                with open(self.log_file_path, "a", encoding="utf-8") as f:
+                    f.write(json_log + "\n")
+            else:
+                # Human-readable format
+                formatted_message = self._format_message(level, message, context)
+                with open(self.log_file_path, "a", encoding="utf-8") as f:
+                    f.write(formatted_message + "\n")
 
         except Exception as e:
             # Don't let file logging failures break the app

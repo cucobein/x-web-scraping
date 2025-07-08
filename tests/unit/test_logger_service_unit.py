@@ -167,7 +167,69 @@ class TestLoggerService:
         assert LogLevel.INFO.value == "info"
         assert LogLevel.WARNING.value == "warning"
         assert LogLevel.ERROR.value == "error"
-        assert LogLevel.CRITICAL.value == "critical" 
+        assert LogLevel.CRITICAL.value == "critical"
+
+    def test_json_output_format(self):
+        """Test JSON output format"""
+        logger = LoggerService(json_output=True)
+        
+        with patch('builtins.print') as mock_print:
+            logger.info("Test JSON message", {"key": "value"})
+            
+            # Verify JSON output
+            assert mock_print.call_count == 1
+            json_output = mock_print.call_args[0][0]
+            
+            # Parse JSON and verify structure
+            import json
+            log_entry = json.loads(json_output)
+            assert log_entry["level"] == "INFO"
+            assert log_entry["message"] == "Test JSON message"
+            assert log_entry["context"]["key"] == "value"
+            assert "timestamp" in log_entry
+            assert "environment" in log_entry
+
+    def test_json_output_without_context(self):
+        """Test JSON output format without context"""
+        logger = LoggerService(json_output=True)
+        
+        with patch('builtins.print') as mock_print:
+            logger.info("Test JSON message")
+            
+            # Verify JSON output
+            assert mock_print.call_count == 1
+            json_output = mock_print.call_args[0][0]
+            
+            # Parse JSON and verify structure
+            import json
+            log_entry = json.loads(json_output)
+            assert log_entry["level"] == "INFO"
+            assert log_entry["message"] == "Test JSON message"
+            assert "context" not in log_entry
+
+    def test_set_json_output_runtime(self):
+        """Test changing JSON output setting at runtime"""
+        logger = LoggerService(json_output=False)
+        
+        # Test human-readable format
+        with patch('builtins.print') as mock_print:
+            logger.info("Test message")
+            assert mock_print.call_count == 1
+            output = mock_print.call_args[0][0]
+            assert "ℹ️" in output  # Human-readable format
+            
+        # Switch to JSON format
+        logger.set_json_output(True)
+        
+        with patch('builtins.print') as mock_print:
+            logger.info("Test JSON message")
+            assert mock_print.call_count == 1
+            json_output = mock_print.call_args[0][0]
+            
+            # Verify it's valid JSON
+            import json
+            log_entry = json.loads(json_output)
+            assert log_entry["level"] == "INFO" 
 
     def test_non_dict_context(self):
         """Test logging with non-dict context (should convert to string and warn)"""
