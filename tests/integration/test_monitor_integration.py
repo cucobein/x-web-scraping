@@ -22,7 +22,10 @@ class TestMonitorIntegration:
         monitor = XMonitor()
         # Override config manager to use FIXTURE mode for integration tests
         from src.config.config_manager import ConfigManager, ConfigMode
-        monitor.config_manager = ConfigManager(ConfigMode.FIXTURE, environment=None, logger=monitor.logger)
+
+        monitor.config_manager = ConfigManager(
+            ConfigMode.FIXTURE, environment=None, logger=monitor.logger
+        )
         return monitor
 
     @pytest_asyncio.fixture

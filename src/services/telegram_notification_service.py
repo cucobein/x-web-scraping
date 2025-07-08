@@ -2,13 +2,6 @@
 Telegram notification service for sending tweet alerts
 """
 
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
-
 from src.models.telegram_message import TelegramMessageRequest, TelegramMessageResponse
 from src.models.tweet import Tweet
 from src.services.http_client import HttpClient
@@ -70,10 +63,11 @@ class TelegramNotificationService:
                         {
                             "error": str(e),
                             "retry_delay": delay,
-                            "endpoint": self.endpoint
-                        }
+                            "endpoint": self.endpoint,
+                        },
                     )
                     import asyncio
+
                     await asyncio.sleep(delay)
                 else:
                     # Final attempt failed, re-raise the exception
@@ -119,8 +113,8 @@ class TelegramNotificationService:
                 {
                     "error": str(e),
                     "tweet_username": tweet.username,
-                    "tweet_url": tweet.url
-                }
+                    "tweet_url": tweet.url,
+                },
             )
             return TelegramMessageResponse.from_error(0, str(e))
 

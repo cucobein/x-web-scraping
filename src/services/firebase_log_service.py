@@ -1,7 +1,6 @@
 """Firebase Logging Service for remote log storage"""
 
 import asyncio
-import json
 import os
 from datetime import datetime
 from typing import Any, Dict, Optional
@@ -28,29 +27,33 @@ class FirebaseLogService:
         self._enabled = False
         self._firestore_client = None
         self._storage_client = None
-        
+
         # If explicitly disabled, don't even try to initialize
         if disabled:
             if self.logger:
                 self.logger.info("Firebase logging disabled by parameter")
             return
-        
+
         # Check if Firebase environment variables are set
         self.project_id = os.getenv("FIREBASE_PROJECT_ID")
         self.service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
-        
+
         # Auto-disable if Firebase config is missing
         if not self.project_id or not self.service_account_path:
             if self.logger:
                 self.logger.warning(
                     "Firebase logging disabled - environment variables not set",
                     {
-                        "FIREBASE_PROJECT_ID": "not_set" if not self.project_id else "set",
-                        "FIREBASE_SERVICE_ACCOUNT_PATH": "not_set" if not self.service_account_path else "set"
-                    }
+                        "FIREBASE_PROJECT_ID": (
+                            "not_set" if not self.project_id else "set"
+                        ),
+                        "FIREBASE_SERVICE_ACCOUNT_PATH": (
+                            "not_set" if not self.service_account_path else "set"
+                        ),
+                    },
                 )
             return
-        
+
         # Try to initialize Firebase
         try:
             self._initialize_firebase()
@@ -61,7 +64,7 @@ class FirebaseLogService:
             if self.logger:
                 self.logger.warning(
                     "Firebase logging disabled - initialization failed",
-                    {"error": str(e)}
+                    {"error": str(e)},
                 )
             self._enabled = False
 
@@ -73,15 +76,15 @@ class FirebaseLogService:
                 if not firebase_admin._apps:
                     cred = credentials.Certificate(self.service_account_path)
                     firebase_admin.initialize_app(cred, {"projectId": self.project_id})
-                
+
                 # Initialize Firestore client
                 self._firestore_client = firestore.client()
-                
+
                 # Initialize Storage client
                 self._storage_client = storage.bucket()
-                
+
                 self._initialized = True
-                
+
             except Exception as e:
                 self.logger.error("Firebase initialization failed", {"error": str(e)})
                 raise
@@ -91,10 +94,7 @@ class FirebaseLogService:
         return self._enabled and self._initialized
 
     async def log_entry(
-        self,
-        level,
-        message: str,
-        context: Optional[Dict[str, Any]] = None
+        self, level, message: str, context: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
         Log an entry to Firebase Firestore
@@ -117,9 +117,9 @@ class FirebaseLogService:
                 "level": level.value.upper(),
                 "environment": get_environment().upper(),
                 "message": message,
-                "created_at": firestore.SERVER_TIMESTAMP
+                "created_at": firestore.SERVER_TIMESTAMP,
             }
-            
+
             if context is not None:
                 if not isinstance(context, dict):
                     context = {"context": str(context)}
@@ -128,16 +128,14 @@ class FirebaseLogService:
             # Add to Firestore
             collection_ref = self._firestore_client.collection("logs")
             await asyncio.get_event_loop().run_in_executor(
-                None, 
-                lambda: collection_ref.add(log_doc)
+                None, lambda: collection_ref.add(log_doc)
             )
-            
+
             return True
 
         except Exception as e:
             self.logger.error(
-                "Failed to log to Firebase",
-                {"error": str(e), "message": message}
+                "Failed to log to Firebase", {"error": str(e), "message": message}
             )
             return False
 
@@ -167,23 +165,22 @@ class FirebaseLogService:
 
             # Upload to Firebase Storage
             blob = self._storage_client.blob(storage_path)
-            
+
             await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: blob.upload_from_filename(log_file_path)
+                None, lambda: blob.upload_from_filename(log_file_path)
             )
 
             self.logger.info(
                 "Log file uploaded to Firebase Storage",
-                {"file": filename, "storage_path": storage_path}
+                {"file": filename, "storage_path": storage_path},
             )
-            
+
             return True
 
         except Exception as e:
             self.logger.error(
                 "Failed to upload log file to Firebase Storage",
-                {"error": str(e), "file": log_file_path}
+                {"error": str(e), "file": log_file_path},
             )
             return False
 
@@ -202,7 +199,9 @@ class FirebaseLogService:
 
         try:
             # Calculate cutoff date
-            cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            cutoff_date = datetime.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
             cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_to_keep)
 
             # Query for old logs
@@ -213,8 +212,7 @@ class FirebaseLogService:
             deleted_count = 0
             for doc in old_logs:
                 await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: doc.reference.delete()
+                    None, lambda: doc.reference.delete()
                 )
                 deleted_count += 1
 
@@ -227,7 +225,6 @@ class FirebaseLogService:
 
         except Exception as e:
             self.logger.error(
-                "Failed to cleanup old logs from Firebase",
-                {"error": str(e)}
+                "Failed to cleanup old logs from Firebase", {"error": str(e)}
             )
-            return False 
+            return False

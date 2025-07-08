@@ -4,10 +4,10 @@ Pytest configuration and shared fixtures
 
 import asyncio
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 from playwright.async_api import Page
-from unittest.mock import AsyncMock
 
 from src.models.tweet import Tweet
 

@@ -2,9 +2,10 @@
 Unit tests for BrowserManager
 """
 
-import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+
+import pytest
 
 from src.services.browser_manager import BrowserManager
 from src.services.rate_limiter import RateLimiter

@@ -39,7 +39,10 @@ class ConfigManager:
 
         # Firebase configuration
         self.project_id = os.getenv("FIREBASE_PROJECT_ID", "web-scraper-e14ff")
-        self.service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json")
+        self.service_account_path = os.getenv(
+            "FIREBASE_SERVICE_ACCOUNT_PATH",
+            "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json",
+        )
 
         # Load configuration immediately
         self._load()

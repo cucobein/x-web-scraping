@@ -2,8 +2,8 @@
 """
 Simple test runner for X Feed Monitor
 """
-import sys
 import subprocess
+import sys
 
 
 def run_tests(test_path=None):

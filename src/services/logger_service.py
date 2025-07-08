@@ -3,22 +3,21 @@ Robust logging service with console and file output
 """
 
 import asyncio
+import functools
+import glob
 import json
 import os
+import time
 import traceback
+from contextlib import AbstractContextManager, contextmanager
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, Optional
 from queue import Queue
 from threading import Lock
-import time
-import functools
-from contextlib import contextmanager, AbstractContextManager
-import glob
+from typing import Any, Dict, Optional
 
-from src.utils.env_helper import get_environment
 from src.services.firebase_log_service import FirebaseLogService
+from src.utils.env_helper import get_environment
 
 
 class LogLevel(Enum):
@@ -85,7 +84,7 @@ class LoggerService:
         self._initialized = True
 
     @classmethod
-    def get_instance(cls) -> 'LoggerService':
+    def get_instance(cls) -> "LoggerService":
         """Get the singleton logger instance"""
         if cls._instance is None:
             cls._instance = LoggerService()
@@ -118,7 +117,7 @@ class LoggerService:
                 pattern = f"{base}.*{ext}"
                 backups = sorted(glob.glob(pattern), reverse=True)
                 if len(backups) > self.backup_count:
-                    for old_backup in backups[self.backup_count:]:
+                    for old_backup in backups[self.backup_count :]:
                         try:
                             os.remove(old_backup)
                         except Exception as e:
@@ -145,24 +144,30 @@ class LoggerService:
             "environment": get_environment().upper(),
             "message": message,
         }
-        
+
         if context is not None:
             if not isinstance(context, dict):
                 context = {"context": str(context)}
             log_entry["context"] = context
-            
+
         try:
             return json.dumps(log_entry, default=str)
         except Exception as e:
             # Fallback to string representation if JSON serialization fails
             print(f"⚠️ LoggerService: Failed to serialize JSON log: {e}")
-            return json.dumps({
-                "timestamp": datetime.now().isoformat(),
-                "level": level.value.upper(),
-                "environment": get_environment().upper(),
-                "message": message,
-                "context": {"error": "JSON serialization failed", "original_context": str(context)}
-            }, default=str)
+            return json.dumps(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "level": level.value.upper(),
+                    "environment": get_environment().upper(),
+                    "message": message,
+                    "context": {
+                        "error": "JSON serialization failed",
+                        "original_context": str(context),
+                    },
+                },
+                default=str,
+            )
 
     def _start_async_worker(self):
         """Start the async worker if not already running"""
@@ -171,7 +176,10 @@ class LoggerService:
                 self._async_worker_running = True
                 # Start worker in a separate thread to avoid blocking
                 import threading
-                worker_thread = threading.Thread(target=self._async_worker_loop, daemon=True)
+
+                worker_thread = threading.Thread(
+                    target=self._async_worker_loop, daemon=True
+                )
                 worker_thread.start()
 
     def _async_worker_loop(self):
@@ -182,19 +190,21 @@ class LoggerService:
                 log_entry = self._async_queue.get(timeout=1.0)
                 if log_entry is None:  # Shutdown signal
                     break
-                
+
                 # Process the log entry
                 level, message, context = log_entry
                 self._log_to_console(level, message, context)
                 self._log_to_file(level, message, context)
-                
+
                 self._async_queue.task_done()
             except Exception as e:
                 # Don't let worker failures break the app
                 print(f"⚠️ Async logger worker error: {e}")
                 continue
 
-    def _queue_log_entry(self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None):
+    def _queue_log_entry(
+        self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
+    ):
         """Queue a log entry for async processing"""
         try:
             self._start_async_worker()
@@ -442,7 +452,9 @@ class LoggerService:
         self._queue_log_entry(LogLevel.ERROR, exception_msg, context)
 
     @contextmanager
-    def timing(self, operation_name: str, context: Optional[Dict[str, Any]] = None) -> AbstractContextManager:
+    def timing(
+        self, operation_name: str, context: Optional[Dict[str, Any]] = None
+    ) -> AbstractContextManager:
         """
         Context manager for timing a code block.
         Usage:
@@ -457,8 +469,13 @@ class LoggerService:
             end = time.perf_counter()
             duration = end - start
             timing_context = dict(context) if context else {}
-            timing_context.update({"operation": operation_name, "duration_seconds": duration})
-            self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+            timing_context.update(
+                {"operation": operation_name, "duration_seconds": duration}
+            )
+            self.info(
+                f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)",
+                timing_context,
+            )
 
     def timeit(self, operation_name: str, context: Optional[Dict[str, Any]] = None):
         """
@@ -467,8 +484,10 @@ class LoggerService:
             @logger.timeit('my_func')
             def my_func(...): ...
         """
+
         def decorator(func):
             if asyncio.iscoroutinefunction(func):
+
                 @functools.wraps(func)
                 async def async_wrapper(*args, **kwargs):
                     start = time.perf_counter()
@@ -480,10 +499,17 @@ class LoggerService:
                         end = time.perf_counter()
                         duration = end - start
                         timing_context = dict(context) if context else {}
-                        timing_context.update({"operation": operation_name, "duration_seconds": duration})
-                        self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+                        timing_context.update(
+                            {"operation": operation_name, "duration_seconds": duration}
+                        )
+                        self.info(
+                            f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)",
+                            timing_context,
+                        )
+
                 return async_wrapper
             else:
+
                 @functools.wraps(func)
                 def sync_wrapper(*args, **kwargs):
                     start = time.perf_counter()
@@ -495,9 +521,16 @@ class LoggerService:
                         end = time.perf_counter()
                         duration = end - start
                         timing_context = dict(context) if context else {}
-                        timing_context.update({"operation": operation_name, "duration_seconds": duration})
-                        self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+                        timing_context.update(
+                            {"operation": operation_name, "duration_seconds": duration}
+                        )
+                        self.info(
+                            f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)",
+                            timing_context,
+                        )
+
                 return sync_wrapper
+
         return decorator
 
     async def upload_log_file(self, log_file_path: str = None) -> bool:
@@ -512,11 +545,13 @@ class LoggerService:
         """
         if log_file_path is None:
             log_file_path = self.log_file_path
-        
+
         try:
             return await self._firebase_logger.upload_log_file(log_file_path)
         except Exception as e:
-            self.error("Failed to upload log file", {"error": str(e), "file": log_file_path})
+            self.error(
+                "Failed to upload log file", {"error": str(e), "file": log_file_path}
+            )
             return False
 
     async def cleanup_old_firebase_logs(self, days_to_keep: int = 30) -> bool:

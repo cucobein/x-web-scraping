@@ -17,15 +17,14 @@ nest_asyncio.apply()
 def setup_logging():
     """Configure centralized logging for the application"""
     environment = get_environment()
-    
+
     # Get the global logger instance
     logger = LoggerService.get_instance()
-    
-    logger.info("Application starting", {
-        "environment": environment,
-        "log_file": "logs/app.log"
-    })
-    
+
+    logger.info(
+        "Application starting", {"environment": environment, "log_file": "logs/app.log"}
+    )
+
     return logger
 
 
@@ -33,7 +32,7 @@ async def main():
     """Main application entry point"""
     # Setup centralized logging
     logger = setup_logging()
-    
+
     try:
         monitor = XMonitor()
         await monitor.start()

@@ -3,12 +3,13 @@ Core monitor that orchestrates all services
 """
 
 import asyncio
-from src.services.browser_manager import BrowserManager
-from src.services.twitter_scraper import TwitterScraper
+
 from src.config.config_manager import ConfigManager, ConfigMode
 from src.repositories.tweet_repository import TweetRepository
-from src.services.notification_service import NotificationService
+from src.services.browser_manager import BrowserManager
 from src.services.logger_service import LoggerService
+from src.services.notification_service import NotificationService
+from src.services.twitter_scraper import TwitterScraper
 
 
 class XMonitor:
@@ -17,25 +18,34 @@ class XMonitor:
     def __init__(self):
         # Get the centralized logger instance
         self.logger = LoggerService.get_instance()
-        
+
         # Initialize all services with the shared logger
-        self.config_manager = ConfigManager(ConfigMode.FIREBASE, environment=None, logger=self.logger)
-        self.browser_manager = BrowserManager(self.config_manager.headless, logger=self.logger)
+        self.config_manager = ConfigManager(
+            ConfigMode.FIREBASE, environment=None, logger=self.logger
+        )
+        self.browser_manager = BrowserManager(
+            self.config_manager.headless, logger=self.logger
+        )
         self.twitter_scraper = TwitterScraper(
             page_timeout=self.config_manager.page_timeout, logger=self.logger
         )
-        self.notification_service = NotificationService(self.config_manager, logger=self.logger)
+        self.notification_service = NotificationService(
+            self.config_manager, logger=self.logger
+        )
         self.tweet_repository = TweetRepository()
 
         # Internal state
         self.is_running = False
-        
-        self.logger.info("XMonitor initialized", {
-            "config_mode": self.config_manager.mode.value,
-            "headless": self.config_manager.headless,
-            "page_timeout": self.config_manager.page_timeout,
-            "accounts_count": len(self.config_manager.accounts)
-        })
+
+        self.logger.info(
+            "XMonitor initialized",
+            {
+                "config_mode": self.config_manager.mode.value,
+                "headless": self.config_manager.headless,
+                "page_timeout": self.config_manager.page_timeout,
+                "accounts_count": len(self.config_manager.accounts),
+            },
+        )
 
     async def process_account(self, username: str) -> bool:
         """
@@ -114,7 +124,9 @@ class XMonitor:
         try:
             await self.logger.upload_log_file()
         except Exception as e:
-            self.logger.warning("Failed to upload log file after monitoring cycle", {"error": str(e)})
+            self.logger.warning(
+                "Failed to upload log file after monitoring cycle", {"error": str(e)}
+            )
 
     async def start(self):
         """Start the monitoring service"""
