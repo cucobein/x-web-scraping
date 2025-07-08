@@ -18,16 +18,16 @@ class BrowserManager:
     def __init__(
         self,
         rate_limiter: RateLimiterService,
-        logger: LoggerService,
+        logger: Optional[LoggerService] = None,
         headless: bool = True,
     ):
         """
         Initialize browser manager
 
         Args:
-            headless: Whether to run browser in headless mode
             rate_limiter: Rate limiter for anti-detection
-            logger: Logger service
+            logger: Logger service (optional, uses default if not provided)
+            headless: Whether to run browser in headless mode
         """
         self.headless = headless
         self.browser: Optional[Browser] = None

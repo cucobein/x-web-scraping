@@ -7,6 +7,7 @@ import pytest
 from src.models.tweet import Tweet
 from src.services.telegram_notification_service import TelegramNotificationService
 from src.services.logger_service import LoggerService
+from src.services.http_client_service import HttpClientService
 
 
 class TestTelegramNotificationService:
@@ -16,9 +17,11 @@ class TestTelegramNotificationService:
     def telegram_service(self):
         """Create Telegram service instance"""
         logger = LoggerService(firebase_logger=None)
+        http_client = HttpClientService(timeout=5)
         return TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="test-api-key",
+            http_client=http_client,
             logger=logger,
         )
 

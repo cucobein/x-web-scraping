@@ -64,10 +64,16 @@ def setup_services():
     
     provider.register_singleton(TweetRepository, lambda: TweetRepository())
     
+    # Register HttpClientService first since TelegramNotificationService needs it
+    provider.register_singleton(HttpClientService, lambda: HttpClientService(
+        timeout=provider.get(ConfigManager).page_timeout
+    ))
+    
     # Transient services (factories return new instances)
     provider.register_singleton(TelegramNotificationService, lambda: TelegramNotificationService(
         endpoint=provider.get(ConfigManager).telegram_endpoint,
         api_key=provider.get(ConfigManager).telegram_api_key,
+        http_client=provider.get(HttpClientService),
         logger=provider.get(LoggerService)
     ))
     
@@ -79,12 +85,8 @@ def setup_services():
     
     provider.register_singleton(NotificationService, lambda: NotificationService(
         config_manager=config_manager,
-        logger=provider.get(LoggerService),
-        telegram_service=telegram_service
-    ))
-    
-    provider.register_singleton(HttpClientService, lambda: HttpClientService(
-        timeout=provider.get(ConfigManager).page_timeout
+        telegram_service=telegram_service,
+        logger=provider.get(LoggerService)
     ))
     
     provider.register_singleton(TwitterScraper, lambda: TwitterScraper(

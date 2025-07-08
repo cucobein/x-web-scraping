@@ -2,6 +2,8 @@
 Telegram notification service for sending tweet alerts
 """
 
+from typing import Optional
+
 from src.models.telegram_message import TelegramMessageRequest, TelegramMessageResponse
 from src.models.tweet import Tweet
 from src.services.http_client_service import HttpClientService
@@ -11,18 +13,19 @@ from src.services.logger_service import LoggerService
 class TelegramNotificationService:
     """Handles sending notifications to Telegram endpoint"""
 
-    def __init__(self, endpoint: str, api_key: str, logger: LoggerService):
+    def __init__(self, endpoint: str, api_key: str, http_client: HttpClientService, logger: Optional[LoggerService] = None):
         """
         Initialize Telegram notification service
 
         Args:
             endpoint: Telegram endpoint URL
             api_key: API key for authentication
-            logger: Logger service (required)
+            http_client: HTTP client service (required)
+            logger: Logger service (optional, uses default if not provided)
         """
         self.endpoint = endpoint
         self.api_key = api_key
-        self.http_client = HttpClientService()
+        self.http_client = http_client
         self.logger = logger
 
     async def _send_telegram_request(

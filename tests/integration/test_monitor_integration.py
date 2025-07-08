@@ -17,6 +17,7 @@ from src.services.telegram_notification_service import TelegramNotificationServi
 from src.services.rate_limiter_service import RateLimiterService
 from src.services.logger_service import LoggerService
 from src.services.twitter_scraper import TwitterScraper
+from src.services.http_client_service import HttpClientService
 
 
 class TestMonitorIntegration:
@@ -56,16 +57,18 @@ class TestMonitorIntegration:
         provider.register_singleton(TwitterScraper, lambda: twitter_scraper)
         
         # Create test notification service
+        http_client = HttpClientService(timeout=5000)
         telegram_service = TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="47827973-e134-4ec1-9b11-458d3cc72962",
+            http_client=http_client,
             logger=logger
         )
         
         notification_service = NotificationService(
             config_manager=config_manager,
-            logger=logger,
-            telegram_service=telegram_service
+            telegram_service=telegram_service,
+            logger=logger
         )
         provider.register_singleton(NotificationService, lambda: notification_service)
         

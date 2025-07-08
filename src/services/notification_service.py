@@ -16,16 +16,16 @@ class NotificationService:
     def __init__(
         self,
         config_manager: ConfigManager,
-        logger: LoggerService,
         telegram_service: Optional[TelegramNotificationService] = None,
+        logger: Optional[LoggerService] = None,
     ):
         """
         Initialize notification service
 
         Args:
             config_manager: Configuration manager instance (required)
-            logger: Logger service (required)
             telegram_service: Optional Telegram notification service
+            logger: Logger service (optional, uses default if not provided)
         """
         self.config_manager = config_manager
         self.logger = logger
