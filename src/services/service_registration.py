@@ -31,15 +31,21 @@ def setup_services():
     # Core services
     provider.register_singleton(EnvironmentService, lambda: EnvironmentService())
     
+    # Create LoggerService first without FirebaseLogService
     provider.register_singleton(LoggerService, lambda: LoggerService(
-        firebase_disabled=False,
         log_file_path="logs/app.log"
     ))
     
+    # Create FirebaseLogService with LoggerService
     provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService(
         logger=provider.get(LoggerService),
         env_service=provider.get(EnvironmentService)
     ))
+    
+    # Update LoggerService to include FirebaseLogService
+    logger_service = provider.get(LoggerService)
+    firebase_logger = provider.get(FirebaseLogService)
+    logger_service._firebase_logger = firebase_logger
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
         mode=ConfigMode.FIREBASE,

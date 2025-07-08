@@ -15,7 +15,7 @@ class TestNotificationService:
         """Test notification service initialization with Telegram enabled"""
         # Test with Telegram enabled (use local mode for unit tests)
         config_with_telegram = ConfigManager(ConfigMode.LOCAL)
-        logger = LoggerService(firebase_disabled=True)
+        logger = LoggerService(firebase_logger=None)
         telegram_service = TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="47827973-e134-4ec1-9b11-458d3cc72962",
@@ -40,7 +40,7 @@ class TestNotificationService:
         """Test notification service initialization with Telegram disabled"""
         # Test with Telegram disabled
         config_without_telegram = ConfigManager(ConfigMode.LOCAL)
-        logger = LoggerService(firebase_disabled=True)
+        logger = LoggerService(firebase_logger=None)
         service_without_telegram = NotificationService(
             config_manager=config_without_telegram,
             logger=logger,
@@ -56,7 +56,7 @@ class TestNotificationService:
         ) as mock_enabled:
             mock_enabled.return_value = False
             config_disabled = ConfigManager(ConfigMode.LOCAL)
-            logger = LoggerService(firebase_disabled=True)
+            logger = LoggerService(firebase_logger=None)
             service_disabled = NotificationService(
                 config_manager=config_disabled,
                 logger=logger,

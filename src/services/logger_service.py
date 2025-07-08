@@ -33,7 +33,7 @@ class LogLevel(Enum):
 class LoggerService:
     """Logger service for application-wide logging"""
 
-    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, firebase_disabled: bool = False, environment_service: Optional[EnvironmentService] = None):
+    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, firebase_logger: Optional[FirebaseLogService] = None, environment_service: Optional[EnvironmentService] = None):
         """
         Initialize logger service
 
@@ -42,7 +42,8 @@ class LoggerService:
             max_file_size_mb: Maximum log file size in MB before rotation
             backup_count: Number of backup files to keep
             json_output: Whether to output logs in JSON format for machine parsing
-            firebase_disabled: If True, disables Firebase logging (useful for tests)
+            firebase_logger: Optional Firebase logging service
+            environment_service: Optional environment service
         """
         self.log_file_path = log_file_path
         self.max_file_size_mb = max_file_size_mb
@@ -56,11 +57,7 @@ class LoggerService:
         self._async_worker_running = False
 
         # Firebase logging setup
-        self._firebase_logger = FirebaseLogService(
-            logger=self, 
-            disabled=firebase_disabled,
-            env_service=self.env_service
-        )
+        self._firebase_logger = firebase_logger
 
         # Ensure log directory exists
         self._ensure_log_directory()
@@ -270,7 +267,7 @@ class LoggerService:
         """Log message to Firebase Firestore."""
         try:
             # Use asyncio to run the async Firebase logging
-            if self._firebase_logger.is_enabled():
+            if self._firebase_logger and self._firebase_logger.is_enabled():
                 asyncio.create_task(
                     self._firebase_logger.log_entry(level, message, context)
                 )
