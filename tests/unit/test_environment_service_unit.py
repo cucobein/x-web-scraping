@@ -3,7 +3,6 @@ Unit tests for EnvironmentService
 """
 
 import os
-import pytest
 
 from src.services.environment_service import EnvironmentService
 

@@ -4,7 +4,7 @@ Core monitor that orchestrates all services
 
 import asyncio
 
-from src.config.config_manager import ConfigManager, ConfigMode
+from src.config.config_manager import ConfigManager
 from src.repositories.tweet_repository import TweetRepository
 from src.services.browser_manager import BrowserManager
 from src.services.logger_service import LoggerService

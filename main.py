@@ -5,11 +5,15 @@ X Feed Monitor - Main Entry Point
 import asyncio
 
 import nest_asyncio
+from dotenv import load_dotenv
 
 from src.core.monitor import XMonitor
 from src.services.logger_service import LoggerService
 from src.services.environment_service import EnvironmentService
 from src.services.service_registration import setup_services
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Allow async code to run in Jupyter notebooks if needed
 nest_asyncio.apply()

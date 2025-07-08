@@ -31,7 +31,7 @@ x-web-scraping/
 - **Browser Management**: Intelligent browser lifecycle management with Playwright
 - **Conditional Browser Modes**: Optimized configurations for headless (production) and non-headless (development) modes
 - **Fresh Context Strategy**: Creates fresh browser contexts for each account to ensure reliability
-- **Configurable**: JSON-based configuration for accounts and settings
+- **Configurable**: Firebase Remote Config for centralized configuration management
 - **State Persistence**: Saves and loads monitoring state
 - **CDMX Government Focus**: Pre-configured with Mexico City government accounts
 - **Extensible**: Modular architecture for easy extension
@@ -42,15 +42,25 @@ x-web-scraping/
 
 ### Environment Setup
 
-1. **Copy the environment template:**
+1. **Create your environment file:**
    ```bash
-   cp .env.template .env
+   # Create .env file with your Firebase credentials
+   touch .env
    ```
 
-2. **Configure your environment:**
-   Edit `.env` and set the `ENVIRONMENT` variable:
-   - `ENVIRONMENT=dev` - Development environment (default)
-   - `ENVIRONMENT=prod` - Production environment
+2. **Configure Firebase (Required):**
+   Add your Firebase configuration to `.env`:
+   ```bash
+   FIREBASE_PROJECT_ID=your-project-id
+   FIREBASE_SERVICE_ACCOUNT_PATH=config/your-service-account.json
+   ENVIRONMENT=dev
+   ```
+
+3. **Firebase Setup:**
+   - Create a Firebase project in [Firebase Console](https://console.firebase.google.com/)
+   - Enable Remote Config
+   - Generate a service account key and save it as `config/your-service-account.json`
+   - Configure your Remote Config parameters (see Configuration section below)
 
 ### Installation
 
@@ -576,19 +586,19 @@ The application features a comprehensive, production-ready logging system with a
 
 ### Advanced Features
 
-#### Firebase Remote Logging
-The application supports remote logging to Firebase for centralized log management:
+#### Firebase Remote Config
+The application uses Firebase Remote Config for centralized configuration management:
 
-**What Gets Logged:**
-- **Individual log entries** → Cloud Firestore (database)
-- **Complete log files** → Firebase Storage (file storage)
+**What Gets Configured:**
+- **Account lists** → Which Twitter accounts to monitor
+- **Check intervals** → How often to check for new posts
+- **Telegram settings** → Notification endpoints and API keys
+- **Browser settings** → Timeouts and headless mode configuration
 
 **Setup Requirements:**
-1. **Enable Cloud Firestore** in Firebase Console
-2. **Enable Firebase Storage** in Firebase Console
-3. **Set up security rules** for both services
-4. **Generate service account key** and save as JSON file
-5. **Set environment variables**:
+1. **Enable Remote Config** in Firebase Console
+2. **Generate service account key** and save as JSON file
+3. **Set environment variables**:
    ```bash
    FIREBASE_PROJECT_ID=your-project-id
    FIREBASE_SERVICE_ACCOUNT_PATH=config/your-service-account.json
@@ -597,13 +607,14 @@ The application supports remote logging to Firebase for centralized log manageme
 **Automatic Behavior:**
 - **Enabled by default** when Firebase config is available
 - **Auto-disabled** when environment variables are missing
-- **Graceful fallback** to local-only logging if Firebase fails
-- **Test-friendly** with `disabled=True` parameter for unit tests
+- **Graceful fallback** to local config if Firebase fails
+- **Environment-aware** with dev/prod specific values
 
-**Monitoring Integration:**
-- Log files are automatically uploaded after each monitoring cycle
-- Individual log entries are sent to Firestore in real-time
-- All logs include environment, timestamp, and structured context
+**Configuration Integration:**
+- Configuration is loaded at startup
+- Environment-specific values (e.g., `monitoring_check_interval_dev`)
+- Real-time updates without code changes
+- Type-safe configuration access
 
 #### JSON Output for Log Aggregation
 Enable JSON output for machine parsing and log aggregation systems:

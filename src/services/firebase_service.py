@@ -2,7 +2,6 @@
 Firebase Service for remote configuration only
 """
 
-import asyncio
 import os
 from typing import Any, Dict, Optional
 
@@ -92,18 +91,20 @@ class FirebaseService:
             return {key: val.value for key, val in server_config._config_values.items()}
 
         try:
+            # Apply nest_asyncio to handle event loop issues
+            import nest_asyncio
+            nest_asyncio.apply()
+            
+            # Create a new event loop if none exists
             try:
-                loop = asyncio.get_running_loop()
+                loop = asyncio.get_event_loop()
             except RuntimeError:
-                loop = None
-
-            if loop and loop.is_running():
-                # Already in an event loop: use nest_asyncio and run in current loop
-                import nest_asyncio
-                nest_asyncio.apply()
-                return loop.run_until_complete(_load_config_async())
-            else:
-                return asyncio.run(_load_config_async())
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            # Run the async function
+            return loop.run_until_complete(_load_config_async())
+            
         except Exception as e:
             raise Exception(f"Failed to load config from Firebase: {str(e)}")
 

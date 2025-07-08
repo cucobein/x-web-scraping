@@ -7,8 +7,9 @@ This directory contains the comprehensive test suite for the X Web Scraping proj
 ### 1. Setup Test Environment
 ```bash
 # Set up environment (if not already done)
-cp .env.template .env
-# Edit .env and set ENVIRONMENT=dev for testing
+# Create .env file with Firebase credentials for testing
+touch .env
+# Add: FIREBASE_PROJECT_ID=your-project-id, FIREBASE_SERVICE_ACCOUNT_PATH=config/your-service-account.json, ENVIRONMENT=dev
 
 # HTML fixtures are automatically managed with Git LFS
 # No manual setup needed - fixtures are version controlled

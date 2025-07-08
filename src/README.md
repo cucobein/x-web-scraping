@@ -130,7 +130,7 @@ telegram_enabled = config.telegram_enabled
 - `http_client.py`: Reusable HTTP client for external APIs
 - `rate_limiter.py`: Domain-specific rate limiting with intelligent backoff strategies
 - `logger_service.py`: Robust, centralized logging system for all core services and modules
-- `firebase_log_service.py`: Firebase integration for remote log storage and monitoring
+- `firebase_service.py`: Firebase Remote Config integration for centralized configuration
 
 **Responsibilities:**
 - Manage external dependencies (browser, APIs)
@@ -143,7 +143,7 @@ telegram_enabled = config.telegram_enabled
 - Manage request timing and delays
 - Implement conditional browser configurations for headless vs non-headless modes
 - Implement a robust, centralized logging system for all core services and modules
-- Provide remote logging capabilities via Firebase Firestore and Storage
+- Provide Firebase Remote Config integration for centralized configuration management
 
 ### **Repository Layer** (`repositories/`)
 **Purpose**: Data persistence and state management
@@ -185,19 +185,30 @@ Models ← Core ← Services ← Repositories
 4. **Repositories** persist state and data
 5. **Models** ensure data integrity throughout
 
-## 🔥 Firebase Logging Service
+## 🔥 Firebase Remote Config Service
 
-The `FirebaseLogService` provides remote logging capabilities for centralized log management and monitoring.
+The `FirebaseService` provides centralized configuration management through Firebase Remote Config.
 
 ### **Features**
-- **Dual Storage**: Individual logs to Cloud Firestore, complete files to Firebase Storage
-- **Environment-Aware**: Logs include environment (dev/prod) and structured context
+- **Environment-Aware**: Different configuration values for dev/prod environments
 - **Auto-Discovery**: Automatically enables/disables based on environment variables
-- **Test-Friendly**: Can be disabled for unit tests with `disabled=True` parameter
-- **Graceful Degradation**: Falls back to local-only logging if Firebase is unavailable
+- **Graceful Fallback**: Falls back to local config if Firebase is unavailable
+- **Real-time Updates**: Configuration can be updated remotely without code changes
+- **Type Safety**: Strongly typed configuration values
 
 ### **Configuration**
 ```python
+from src.services.firebase_service import FirebaseService
+
+# Initialize Firebase service
+firebase_service = FirebaseService()
+
+# Load configuration
+config = firebase_service.load_config()
+
+# Get environment-specific values
+check_interval = firebase_service.get_config_value("monitoring_check_interval", config)
+```
 # Environment variables required for Firebase logging
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_SERVICE_ACCOUNT_PATH=config/service-account.json

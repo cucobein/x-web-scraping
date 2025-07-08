@@ -2,9 +2,7 @@
 Configuration management for X Feed Monitor with Firebase Remote Config support
 """
 
-import asyncio
 import json
-import os
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -80,7 +78,8 @@ class ConfigManager:
     def _load_from_firebase_with_fallback(self) -> Dict[str, Any]:
         """Load from Firebase with fallback to local JSON"""
         try:
-            return asyncio.run(self._load_from_firebase())
+            # The Firebase service already handles async properly, so we can call it directly
+            return self._load_from_firebase()
         except Exception as e:
             if self.logger:
                 self.logger.warning(
