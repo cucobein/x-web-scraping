@@ -10,6 +10,7 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from src.config.config_manager import ConfigManager, ConfigMode
+from src.services.logger_service import LoggerService
 
 
 class TestConfigManagerIntegration:
@@ -41,8 +42,9 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_loading_with_fixture(self, firebase_config_fixture):
         """Test Firebase config loading using captured fixture"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         # Create config manager with fixture enabled
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev")
+        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
         # Verify config contains Firebase data by checking properties
         assert config_manager.check_interval == 30
@@ -51,7 +53,8 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_properties_dev_environment(self, firebase_config_fixture):
         """Test Firebase config properties in dev environment"""
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev")
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
         # Test properties
         assert config_manager.check_interval == 30  # monitoring_check_interval_dev
@@ -73,7 +76,8 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_properties_prod_environment(self, firebase_config_fixture):
         """Test Firebase config properties in prod environment"""
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="prod")
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="prod", logger=logger)
 
         # Test properties
         assert config_manager.check_interval == 60  # monitoring_check_interval_prod
@@ -103,9 +107,10 @@ class TestConfigManagerIntegration:
             "accounts": ["fallback_user"],
         }
 
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         with patch("builtins.open", mock_open(read_data=json.dumps(local_config))):
             with patch("pathlib.Path.exists", return_value=True):
-                config_manager = ConfigManager(mode=ConfigMode.FALLBACK)
+                config_manager = ConfigManager(mode=ConfigMode.FALLBACK, logger=logger)
 
                 # Should fall back to local config
                 assert config_manager.check_interval == 45
@@ -114,9 +119,10 @@ class TestConfigManagerIntegration:
 
     def test_fallback_to_defaults_when_both_firebase_and_local_fail(self):
         """Test fallback to defaults when both Firebase and local config fail"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         # Mock local config file to not exist
         with patch("pathlib.Path.exists", return_value=False):
-            config_manager = ConfigManager(mode=ConfigMode.FIXTURE)
+            config_manager = ConfigManager(mode=ConfigMode.FIXTURE, logger=logger)
 
             # Should use defaults from _get_default_config()
             # Note: In FIXTURE mode, the config contains Firebase-style keys
@@ -133,9 +139,10 @@ class TestConfigManagerIntegration:
             "accounts": ["local_user"],
         }
 
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         with patch("builtins.open", mock_open(read_data=json.dumps(local_config))):
             with patch("pathlib.Path.exists", return_value=True):
-                config_manager = ConfigManager(mode=ConfigMode.LOCAL)
+                config_manager = ConfigManager(mode=ConfigMode.LOCAL, logger=logger)
 
                 # Should use local config
                 assert config_manager.check_interval == 90
@@ -144,7 +151,8 @@ class TestConfigManagerIntegration:
 
     def test_firebase_manager_initialization(self, firebase_config_fixture):
         """Test Firebase manager initialization and caching"""
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev")
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
         # Config should be loaded and cached
         assert config_manager.check_interval == 30

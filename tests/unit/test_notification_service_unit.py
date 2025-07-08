@@ -14,8 +14,8 @@ class TestNotificationService:
     def test_notification_service_initialization_with_telegram_enabled(self):
         """Test notification service initialization with Telegram enabled"""
         # Test with Telegram enabled (use local mode for unit tests)
-        config_with_telegram = ConfigManager(ConfigMode.LOCAL)
-        logger = LoggerService(firebase_logger=None)
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        config_with_telegram = ConfigManager(ConfigMode.LOCAL, logger=logger)
         telegram_service = TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="47827973-e134-4ec1-9b11-458d3cc72962",
@@ -39,8 +39,8 @@ class TestNotificationService:
     def test_notification_service_initialization_with_telegram_disabled(self):
         """Test notification service initialization with Telegram disabled"""
         # Test with Telegram disabled
-        config_without_telegram = ConfigManager(ConfigMode.LOCAL)
-        logger = LoggerService(firebase_logger=None)
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        config_without_telegram = ConfigManager(ConfigMode.LOCAL, logger=logger)
         service_without_telegram = NotificationService(
             config_manager=config_without_telegram,
             logger=logger,
@@ -55,8 +55,8 @@ class TestNotificationService:
             ConfigManager, "telegram_enabled", new_callable=PropertyMock
         ) as mock_enabled:
             mock_enabled.return_value = False
-            config_disabled = ConfigManager(ConfigMode.LOCAL)
-            logger = LoggerService(firebase_logger=None)
+            logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+            config_disabled = ConfigManager(ConfigMode.LOCAL, logger=logger)
             service_disabled = NotificationService(
                 config_manager=config_disabled,
                 logger=logger,

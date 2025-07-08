@@ -9,6 +9,7 @@ from unittest.mock import mock_open, patch
 import pytest
 
 from src.config.config_manager import ConfigManager, ConfigMode
+from src.services.logger_service import LoggerService
 
 
 class TestConfigManager:
@@ -16,6 +17,7 @@ class TestConfigManager:
 
     def test_load_valid_config_file(self):
         """Test loading a valid config file"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         config_data = {
             "check_interval": 60,
             "headless": False,
@@ -24,7 +26,7 @@ class TestConfigManager:
 
         with patch("builtins.open", mock_open(read_data=json.dumps(config_data))):
             with patch("pathlib.Path.exists", return_value=True):
-                config_manager = ConfigManager(ConfigMode.LOCAL)
+                config_manager = ConfigManager(ConfigMode.LOCAL, logger=logger)
 
                 # Test that config was loaded correctly
                 assert config_manager.check_interval == 60
@@ -33,13 +35,15 @@ class TestConfigManager:
 
     def test_invalid_json_handling(self):
         """Test handling of invalid JSON in config file"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         with patch("builtins.open", mock_open(read_data="invalid json content")):
             with patch("pathlib.Path.exists", return_value=True):
                 with pytest.raises(json.JSONDecodeError):
-                    ConfigManager(ConfigMode.LOCAL)
+                    ConfigManager(ConfigMode.LOCAL, logger=logger)
 
     def test_config_properties(self):
         """Test that config properties work correctly"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         config_data = {
             "check_interval": 45,
             "headless": True,
@@ -48,7 +52,7 @@ class TestConfigManager:
 
         with patch("builtins.open", mock_open(read_data=json.dumps(config_data))):
             with patch("pathlib.Path.exists", return_value=True):
-                config_manager = ConfigManager(ConfigMode.LOCAL)
+                config_manager = ConfigManager(ConfigMode.LOCAL, logger=logger)
 
                 assert config_manager.check_interval == 45
                 assert config_manager.headless is True
@@ -56,11 +60,12 @@ class TestConfigManager:
 
     def test_config_caching(self):
         """Test that config is cached after first load"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         config_data = {"check_interval": 100}
 
         with patch("builtins.open", mock_open(read_data=json.dumps(config_data))):
             with patch("pathlib.Path.exists", return_value=True):
-                config_manager = ConfigManager(ConfigMode.LOCAL)
+                config_manager = ConfigManager(ConfigMode.LOCAL, logger=logger)
 
                 # Config should be loaded and cached
                 assert config_manager.check_interval == 100
@@ -68,10 +73,11 @@ class TestConfigManager:
 
     def test_real_config_file_integration(self):
         """Test with actual config file from the project"""
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
         config_path = Path("config/config.json")
 
         if config_path.exists():
-            config_manager = ConfigManager(ConfigMode.LOCAL)
+            config_manager = ConfigManager(ConfigMode.LOCAL, logger=logger)
 
             # Test that config was loaded from real file
             assert config_manager.check_interval > 0

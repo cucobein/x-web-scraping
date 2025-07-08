@@ -37,7 +37,7 @@ class ConfigManager:
         self.environment = environment or self._get_environment()
         self._config = None
         self._firebase_manager = None
-        self.logger = logger or LoggerService()
+        self.logger = logger
 
         # Firebase configuration
         self.project_id = os.getenv("FIREBASE_PROJECT_ID", "web-scraper-e14ff")
