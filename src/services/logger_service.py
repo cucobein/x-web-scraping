@@ -18,7 +18,6 @@ from typing import Any, Dict, Optional
 
 from src.services.firebase_log_service import FirebaseLogService
 from src.services.environment_service import EnvironmentService
-from src.utils.env_helper import get_environment
 
 
 class LogLevel(Enum):

@@ -1,35 +1,28 @@
-"""Unit tests for EnvironmentService"""
+"""
+Unit tests for EnvironmentService
+"""
 
 import os
-from unittest.mock import patch
-
 import pytest
 
 from src.services.environment_service import EnvironmentService
-from src.utils.env_helper import get_environment
 
 
 class TestEnvironmentService:
     """Test EnvironmentService functionality"""
 
-    def test_get_environment_returns_same_as_helper(self):
-        """Test that EnvironmentService returns the same value as get_environment()"""
-        # Arrange
+    def test_get_environment_returns_default_when_not_set(self):
+        """Test that EnvironmentService returns default environment when ENVIRONMENT not set"""
+        # Clear environment variable
+        if "ENVIRONMENT" in os.environ:
+            del os.environ["ENVIRONMENT"]
+        
         env_service = EnvironmentService()
-        
-        # Act
-        service_env = env_service.get_environment()
-        helper_env = get_environment()
-        
-        # Assert
-        assert service_env == helper_env
+        assert env_service.get_environment() == "dev"
 
     def test_is_development_returns_correct_value(self):
-        """Test is_development() method"""
-        # Arrange
+        """Test is_development method"""
         env_service = EnvironmentService()
-        
-        # Act & Assert
         if env_service.get_environment() == "dev":
             assert env_service.is_development() is True
             assert env_service.is_production() is False
@@ -38,11 +31,8 @@ class TestEnvironmentService:
             assert env_service.is_production() is True
 
     def test_is_production_returns_correct_value(self):
-        """Test is_production() method"""
-        # Arrange
+        """Test is_production method"""
         env_service = EnvironmentService()
-        
-        # Act & Assert
         if env_service.get_environment() == "prod":
             assert env_service.is_production() is True
             assert env_service.is_development() is False
@@ -52,43 +42,33 @@ class TestEnvironmentService:
 
     def test_environment_property(self):
         """Test environment property"""
-        # Arrange
         env_service = EnvironmentService()
-        
-        # Act
-        env_property = env_service.environment
         env_method = env_service.get_environment()
+        env_property = env_service.environment
         
-        # Assert
-        assert env_property == env_method
+        assert env_method == env_property
 
-    @patch.dict(os.environ, {"ENVIRONMENT": "dev"})
     def test_with_dev_environment(self):
         """Test with dev environment set"""
-        # Arrange & Act
+        os.environ["ENVIRONMENT"] = "dev"
         env_service = EnvironmentService()
         
-        # Assert
         assert env_service.get_environment() == "dev"
         assert env_service.is_development() is True
         assert env_service.is_production() is False
 
-    @patch.dict(os.environ, {"ENVIRONMENT": "prod"})
     def test_with_prod_environment(self):
         """Test with prod environment set"""
-        # Arrange & Act
+        os.environ["ENVIRONMENT"] = "prod"
         env_service = EnvironmentService()
         
-        # Assert
         assert env_service.get_environment() == "prod"
         assert env_service.is_production() is True
         assert env_service.is_development() is False
 
     def test_singleton_behavior(self):
-        """Test that EnvironmentService can be used as singleton"""
-        # Arrange & Act
+        """Test that multiple instances return the same environment value"""
         env_service1 = EnvironmentService()
         env_service2 = EnvironmentService()
         
-        # Assert
         assert env_service1.get_environment() == env_service2.get_environment() 

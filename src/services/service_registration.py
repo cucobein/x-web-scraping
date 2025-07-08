@@ -42,7 +42,9 @@ def setup_services():
     ))
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
-        mode=ConfigMode.FIREBASE
+        mode=ConfigMode.FIREBASE,
+        logger=provider.get(LoggerService),
+        env_service=provider.get(EnvironmentService)
     ))
     
     provider.register_singleton(RateLimiter, lambda: RateLimiter())
@@ -104,7 +106,9 @@ def setup_services_for_testing():
     ))
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
-        mode=ConfigMode.FIXTURE  # Use fixture mode for tests
+        mode=ConfigMode.FIXTURE,  # Use fixture mode for tests
+        logger=provider.get(LoggerService),
+        env_service=provider.get(EnvironmentService)
     ))
     
     provider.register_singleton(RateLimiter, lambda: RateLimiter())

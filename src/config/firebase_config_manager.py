@@ -9,7 +9,7 @@ import firebase_admin
 from firebase_admin import credentials, remote_config
 
 from src.services.logger_service import LoggerService
-from src.utils.env_helper import get_environment
+from src.services.environment_service import EnvironmentService
 
 
 class FirebaseConfigManager:
@@ -20,6 +20,7 @@ class FirebaseConfigManager:
         project_id: str,
         service_account_path: str,
         logger: Optional[LoggerService] = None,
+        env_service: Optional[EnvironmentService] = None,
     ):
         """
         Initialize Firebase Config Manager
@@ -28,12 +29,20 @@ class FirebaseConfigManager:
             project_id: Firebase project ID
             service_account_path: Path to service account JSON file
             logger: LoggerService instance
+            env_service: Optional EnvironmentService for environment info
         """
         self.project_id = project_id
         self.service_account_path = service_account_path
         self._config_cache: Optional[Dict[str, Any]] = None
         self._initialized = False
         self.logger = logger or LoggerService()
+        self.env_service = env_service
+
+    def _get_environment(self) -> str:
+        """Get environment value with fallback"""
+        if self.env_service:
+            return self.env_service.get_environment()
+        return EnvironmentService.get_default_environment()
 
     async def _initialize_firebase(self):
         """Initialize Firebase Admin SDK if not already done"""
@@ -127,7 +136,7 @@ class FirebaseConfigManager:
         Returns:
             Configuration value for current environment
         """
-        env = get_environment()
+        env = self._get_environment()
         env_key = f"{key}_{env}"
 
         if env_key in config:

@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from src.config.firebase_config_manager import FirebaseConfigManager
 from src.services.logger_service import LoggerService
-from src.utils.env_helper import get_environment
+from src.services.environment_service import EnvironmentService
 
 
 class ConfigMode(Enum):
@@ -30,9 +30,11 @@ class ConfigManager:
         mode: ConfigMode,
         environment: str = None,
         logger: Optional[LoggerService] = None,
+        env_service: Optional[EnvironmentService] = None,
     ):
         self.mode = mode
-        self.environment = environment or get_environment()
+        self.env_service = env_service
+        self.environment = environment or self._get_environment()
         self._config = None
         self._firebase_manager = None
         self.logger = logger or LoggerService()
@@ -46,6 +48,12 @@ class ConfigManager:
 
         # Load configuration immediately
         self._load()
+
+    def _get_environment(self) -> str:
+        """Get environment value with fallback"""
+        if self.env_service:
+            return self.env_service.get_environment()
+        return EnvironmentService.get_default_environment()
 
     def _load(self) -> Dict[str, Any]:
         """Load configuration based on mode"""
@@ -132,7 +140,10 @@ class ConfigManager:
         """Ensure Firebase manager is initialized"""
         if self._firebase_manager is None:
             self._firebase_manager = FirebaseConfigManager(
-                self.project_id, self.service_account_path
+                self.project_id, 
+                self.service_account_path,
+                logger=self.logger,
+                env_service=self.env_service
             )
 
     def _load_from_file(self) -> Dict[str, Any]:

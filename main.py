@@ -8,7 +8,8 @@ import nest_asyncio
 
 from src.core.monitor import XMonitor
 from src.services.logger_service import LoggerService
-from src.utils.env_helper import get_environment
+from src.services.environment_service import EnvironmentService
+from src.services.service_registration import setup_services
 
 # Allow async code to run in Jupyter notebooks if needed
 nest_asyncio.apply()
@@ -16,10 +17,14 @@ nest_asyncio.apply()
 
 def setup_logging():
     """Configure centralized logging for the application"""
-    environment = get_environment()
-
-    # Get the global logger instance
-    logger = LoggerService.get_instance()
+    # Setup services (this registers EnvironmentService and LoggerService)
+    provider = setup_services()
+    
+    # Get services from provider
+    env_service = provider.get(EnvironmentService)
+    logger = provider.get(LoggerService)
+    
+    environment = env_service.get_environment()
 
     logger.info(
         "Application starting", {"environment": environment, "log_file": "logs/app.log"}
