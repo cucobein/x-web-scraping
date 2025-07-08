@@ -17,7 +17,7 @@ class XMonitor:
 
     def __init__(self):
         # Get the centralized logger instance
-        self.logger = LoggerService.get_instance()
+        self.logger = LoggerService()
 
         # Initialize all services with the shared logger
         self.config_manager = ConfigManager(

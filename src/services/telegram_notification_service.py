@@ -23,7 +23,7 @@ class TelegramNotificationService:
         self.endpoint = endpoint
         self.api_key = api_key
         self.http_client = HttpClient()
-        self.logger = logger or LoggerService.get_instance()
+        self.logger = logger or LoggerService()
 
     async def _send_telegram_request(
         self, request: TelegramMessageRequest, headers: dict
