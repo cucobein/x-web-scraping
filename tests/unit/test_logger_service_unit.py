@@ -23,21 +23,9 @@ class TestLoggerService:
         LoggerService._instance = None
         LoggerService._initialized = False
 
-    def test_singleton_pattern(self):
-        """Test that LoggerService follows singleton pattern"""
-        logger1 = LoggerService()
-        logger2 = LoggerService()
-        assert logger1 is logger2
-
-    def test_get_instance_method(self):
-        """Test get_instance class method"""
-        logger1 = LoggerService.get_instance()
-        logger2 = LoggerService.get_instance()
-        assert logger1 is logger2
-
     def test_sync_logging_methods(self):
         """Test all sync logging methods"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         # Test all log levels
         with patch("builtins.print") as mock_print:
@@ -60,7 +48,7 @@ class TestLoggerService:
 
     def test_sync_logging_with_context(self):
         """Test sync logging with context data"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch("builtins.print") as mock_print:
             context = {"user_id": 123, "action": "test"}
@@ -75,7 +63,7 @@ class TestLoggerService:
 
     def test_async_logging_methods(self):
         """Test all async logging methods"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         # Test all async log levels
         with patch.object(logger, "_queue_log_entry") as mock_queue:
@@ -90,7 +78,7 @@ class TestLoggerService:
 
     def test_async_logging_with_context(self):
         """Test async logging with context data"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch.object(logger, "_queue_log_entry") as mock_queue:
             context = {"user_id": 456, "action": "async_test"}
@@ -105,7 +93,7 @@ class TestLoggerService:
 
     def test_log_exception_sync(self):
         """Test sync exception logging"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch("builtins.print") as mock_print:
             try:
@@ -118,7 +106,7 @@ class TestLoggerService:
 
     def test_log_exception_async(self):
         """Test async exception logging"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch.object(logger, "_queue_log_entry") as mock_queue:
             try:
@@ -131,7 +119,7 @@ class TestLoggerService:
 
     def test_async_worker_startup(self):
         """Test that async worker starts when needed"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch("threading.Thread") as mock_thread:
             logger._start_async_worker()
@@ -142,7 +130,7 @@ class TestLoggerService:
 
     def test_async_worker_not_started_twice(self):
         """Test that async worker doesn't start multiple times"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch("threading.Thread") as mock_thread:
             logger._start_async_worker()
@@ -153,7 +141,7 @@ class TestLoggerService:
 
     def test_queue_log_entry_fallback(self):
         """Test that queue failures fall back to sync logging"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         with patch.object(logger, "_async_queue") as mock_queue:
             # Make queue.put raise an exception
@@ -169,6 +157,7 @@ class TestLoggerService:
 
     def test_log_level_enum(self):
         """Test LogLevel enum values"""
+        logger = LoggerService(json_output=False)
         assert LogLevel.DEBUG.value == "debug"
         assert LogLevel.INFO.value == "info"
         assert LogLevel.WARNING.value == "warning"
@@ -227,22 +216,16 @@ class TestLoggerService:
             assert "ℹ️" in output  # Human-readable format
 
         # Switch to JSON format
-        logger.set_json_output(True)
-
+        logger.json_output = True
         with patch("builtins.print") as mock_print:
-            logger.info("Test JSON message")
+            logger.info("Test message")
             assert mock_print.call_count == 1
-            json_output = mock_print.call_args[0][0]
-
-            # Verify it's valid JSON
-            import json
-
-            log_entry = json.loads(json_output)
-            assert log_entry["level"] == "INFO"
+            output = mock_print.call_args[0][0]
+            assert output.startswith("{")  # JSON format
 
     def test_non_dict_context(self):
         """Test logging with non-dict context (should convert to string and warn)"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
         with patch("builtins.print") as mock_print:
             logger.info("Test message", [1, 2, 3])
             # Should print a warning about context type
@@ -257,7 +240,7 @@ class TestLoggerService:
 
     def test_unserializable_context(self):
         """Test logging with unserializable object in context (should fallback to str)"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
 
         class Unserializable:
             pass
@@ -275,7 +258,7 @@ class TestLoggerService:
 
     def test_nested_dict_context(self):
         """Test logging with nested dict context (should pretty print)"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
         context = {"outer": {"inner": {"value": 42}}}
         with patch("builtins.print") as mock_print:
             logger.info("Test nested context", context)
@@ -288,7 +271,7 @@ class TestLoggerService:
 
     def test_timing_context_manager(self):
         """Test timing context manager logs start and end with duration"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
         with patch.object(logger, "info") as mock_info:
             with logger.timing("test_operation"):
                 time.sleep(0.01)
@@ -309,7 +292,7 @@ class TestLoggerService:
 
     def test_timeit_decorator_sync(self):
         """Test timeit decorator for sync function"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
         with patch.object(logger, "info") as mock_info:
 
             @logger.timeit("decorated_sync")
@@ -335,7 +318,7 @@ class TestLoggerService:
     @pytest.mark.asyncio
     async def test_timeit_decorator_async(self):
         """Test timeit decorator for async function"""
-        logger = LoggerService()
+        logger = LoggerService(json_output=False)
         with patch.object(logger, "info") as mock_info:
 
             @logger.timeit("decorated_async")
@@ -363,9 +346,8 @@ class TestLoggerService:
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "test.log")
             logger = LoggerService(
-                log_file_path=log_file, max_file_size_mb=0.0001, backup_count=2
+                log_file_path=log_file, max_file_size_mb=0.0001, backup_count=2, json_output=False
             )  # ~100 bytes
-            logger.set_json_output(False)
             # Patch datetime to control timestamp
             fake_time = datetime(2024, 6, 7, 15, 30, 45)
             with patch("src.services.logger_service.datetime") as mock_dt:

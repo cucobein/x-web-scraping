@@ -5,8 +5,8 @@ Provides environment information as a service, allowing other services to get
 environment data through dependency injection instead of direct function calls.
 """
 
+import os
 from typing import Literal
-from src.utils.env_helper import get_environment
 
 EnvironmentType = Literal["dev", "prod"]
 
@@ -14,9 +14,14 @@ EnvironmentType = Literal["dev", "prod"]
 class EnvironmentService:
     """Service for providing environment information"""
     
+    @staticmethod
+    def get_default_environment() -> str:
+        """Get the default environment value"""
+        return os.getenv("ENVIRONMENT", "dev")
+    
     def __init__(self):
         """Initialize with current environment"""
-        self._environment = get_environment()
+        self._environment = self.get_default_environment()
     
     def get_environment(self) -> EnvironmentType:
         """

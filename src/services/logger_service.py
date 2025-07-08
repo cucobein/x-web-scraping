@@ -17,6 +17,7 @@ from threading import Lock
 from typing import Any, Dict, Optional
 
 from src.services.firebase_log_service import FirebaseLogService
+from src.services.environment_service import EnvironmentService
 from src.utils.env_helper import get_environment
 
 
@@ -31,25 +32,9 @@ class LogLevel(Enum):
 
 
 class LoggerService:
-    """Robust logging service with console and file output"""
+    """Logger service for application-wide logging"""
 
-    _instance = None
-    _initialized = False
-
-    def __new__(cls, *args, **kwargs):
-        """Singleton pattern to ensure only one logger instance exists"""
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def __init__(
-        self,
-        log_file_path: str = "logs/app.log",
-        max_file_size_mb: int = 10,
-        backup_count: int = 5,
-        json_output: bool = False,
-        firebase_disabled: bool = False,
-    ):
+    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, firebase_disabled: bool = False, environment_service: Optional[EnvironmentService] = None):
         """
         Initialize logger service
 
@@ -60,14 +45,11 @@ class LoggerService:
             json_output: Whether to output logs in JSON format for machine parsing
             firebase_disabled: If True, disables Firebase logging (useful for tests)
         """
-        # Only initialize once
-        if self._initialized:
-            return
-
         self.log_file_path = log_file_path
         self.max_file_size_mb = max_file_size_mb
         self.backup_count = backup_count
         self.json_output = json_output
+        self.env_service = environment_service
 
         # Async logging setup
         self._async_queue = Queue()
@@ -80,19 +62,10 @@ class LoggerService:
         # Ensure log directory exists
         self._ensure_log_directory()
 
-        # Mark as initialized
-        self._initialized = True
-
-    @classmethod
-    def get_instance(cls) -> "LoggerService":
-        """Get the singleton logger instance"""
-        if cls._instance is None:
-            cls._instance = LoggerService()
-        return cls._instance
-
-    def set_json_output(self, enabled: bool):
-        """Enable or disable JSON output format"""
-        self.json_output = enabled
+    def _get_environment(self) -> str:
+        if self.env_service:
+            return self.env_service.get_environment()
+        return EnvironmentService.get_default_environment()
 
     def _ensure_log_directory(self):
         """Ensure log directory exists"""
@@ -141,7 +114,7 @@ class LoggerService:
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "level": level.value.upper(),
-            "environment": get_environment().upper(),
+            "environment": self._get_environment().upper(),
             "message": message,
         }
 
@@ -159,7 +132,7 @@ class LoggerService:
                 {
                     "timestamp": datetime.now().isoformat(),
                     "level": level.value.upper(),
-                    "environment": get_environment().upper(),
+                    "environment": self._get_environment().upper(),
                     "message": message,
                     "context": {
                         "error": "JSON serialization failed",
@@ -220,7 +193,7 @@ class LoggerService:
     ) -> str:
         """Format message for logging"""
         timestamp = self._get_timestamp()
-        env = get_environment()
+        env = self._get_environment()
 
         # Base message
         formatted = f"[{timestamp}] [{level.value.upper()}] [{env.upper()}] {message}"
@@ -385,7 +358,7 @@ class LoggerService:
         """Log exception with stack trace"""
         # Format the full error message with stack trace
         timestamp = self._get_timestamp()
-        env = get_environment()
+        env = self._get_environment()
 
         # Base error message
         error_msg = (
