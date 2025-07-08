@@ -15,7 +15,7 @@ from src.services.browser_manager import BrowserManager
 from src.repositories.tweet_repository import TweetRepository
 from src.services.notification_service import NotificationService
 from src.services.telegram_notification_service import TelegramNotificationService
-from src.services.http_client import HttpClient
+from src.services.http_client_service import HttpClientService
 from src.services.twitter_scraper import TwitterScraper
 
 
@@ -83,7 +83,7 @@ def setup_services():
         telegram_service=telegram_service
     ))
     
-    provider.register_singleton(HttpClient, lambda: HttpClient(
+    provider.register_singleton(HttpClientService, lambda: HttpClientService(
         timeout=provider.get(ConfigManager).page_timeout
     ))
     

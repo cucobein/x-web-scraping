@@ -4,7 +4,7 @@ Telegram notification service for sending tweet alerts
 
 from src.models.telegram_message import TelegramMessageRequest, TelegramMessageResponse
 from src.models.tweet import Tweet
-from src.services.http_client import HttpClient
+from src.services.http_client_service import HttpClientService
 from src.services.logger_service import LoggerService
 
 
@@ -22,7 +22,7 @@ class TelegramNotificationService:
         """
         self.endpoint = endpoint
         self.api_key = api_key
-        self.http_client = HttpClient()
+        self.http_client = HttpClientService()
         self.logger = logger
 
     async def _send_telegram_request(

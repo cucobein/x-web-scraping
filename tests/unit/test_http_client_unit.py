@@ -6,16 +6,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.services.http_client import HttpClient
+from src.services.http_client_service import HttpClientService
 
 
-class TestHttpClient:
+class TestHttpClientService:
     """Test HTTP client functionality"""
 
     @pytest.fixture
     def http_client(self):
         """Create HTTP client instance"""
-        return HttpClient(timeout=5, max_retries=2, retry_delay=0.1)
+        return HttpClientService(timeout=5, max_retries=2, retry_delay=0.1)
 
     @pytest.mark.asyncio
     async def test_successful_post_request(self, http_client):

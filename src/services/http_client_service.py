@@ -9,7 +9,7 @@ import aiohttp
 from aiohttp import ClientTimeout, FormData
 
 
-class HttpClient:
+class HttpClientService:
     """Handles HTTP requests with proper error handling and retries"""
 
     def __init__(
