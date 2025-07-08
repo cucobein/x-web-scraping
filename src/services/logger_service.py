@@ -171,9 +171,17 @@ class LoggerService:
         formatted = f"[{timestamp}] [{level.value.upper()}] [{env.upper()}] {message}"
 
         # Add context if provided
-        if context:
-            # Format context as pretty JSON
-            context_str = json.dumps(context, default=str, indent=2)
+        if context is not None:
+            if not isinstance(context, dict):
+                # Log a warning about improper context usage
+                warning_msg = f"LoggerService: context should be a dict, got {type(context).__name__}. Converting to string."
+                print(f"⚠️ {warning_msg}")
+                context = {"context": str(context)}
+            try:
+                context_str = json.dumps(context, default=str, indent=2)
+            except Exception as e:
+                context_str = str(context)
+                print(f"⚠️ LoggerService: Failed to serialize context: {e}")
             formatted += f"\n  Context:\n{context_str}"
 
         return formatted
@@ -303,8 +311,16 @@ class LoggerService:
         error_msg += f"\n  Exception: {type(exception).__name__}: {str(exception)}"
 
         # Add context if provided
-        if context:
-            context_str = json.dumps(context, default=str, indent=2)
+        if context is not None:
+            if not isinstance(context, dict):
+                warning_msg = f"LoggerService: context should be a dict, got {type(context).__name__}. Converting to string."
+                print(f"⚠️ {warning_msg}")
+                context = {"context": str(context)}
+            try:
+                context_str = json.dumps(context, default=str, indent=2)
+            except Exception as e:
+                context_str = str(context)
+                print(f"⚠️ LoggerService: Failed to serialize context: {e}")
             error_msg += f"\n  Context:\n{context_str}"
 
         # Add stack trace
@@ -318,8 +334,13 @@ class LoggerService:
 
         # Log to file (single line for file)
         file_msg = f"[{timestamp}] [{LogLevel.ERROR.value.upper()}] [{env.upper()}] {message} | Exception: {type(exception).__name__}: {str(exception)}"
-        if context:
-            context_str = json.dumps(context, default=str)
+        if context is not None:
+            if not isinstance(context, dict):
+                context = {"context": str(context)}
+            try:
+                context_str = json.dumps(context, default=str)
+            except Exception:
+                context_str = str(context)
             file_msg += f" | Context: {context_str}"
 
         try:
@@ -335,9 +356,12 @@ class LoggerService:
         context: Optional[Dict[str, Any]] = None,
     ):
         """Log exception asynchronously with stack trace"""
-        # Queue the exception logging for async processing
+        # Ensure context is a dict
+        if context is not None and not isinstance(context, dict):
+            warning_msg = f"LoggerService: context should be a dict, got {type(context).__name__}. Converting to string."
+            print(f"⚠️ {warning_msg}")
+            context = {"context": str(context)}
         self._queue_log_entry(LogLevel.ERROR, message, context)
-        
         # Also queue the exception details
         exception_msg = f"Exception: {type(exception).__name__}: {str(exception)}"
         self._queue_log_entry(LogLevel.ERROR, exception_msg, context)

@@ -168,3 +168,37 @@ class TestLoggerService:
         assert LogLevel.WARNING.value == "warning"
         assert LogLevel.ERROR.value == "error"
         assert LogLevel.CRITICAL.value == "critical" 
+
+    def test_non_dict_context(self):
+        """Test logging with non-dict context (should convert to string and warn)"""
+        logger = LoggerService()
+        with patch('builtins.print') as mock_print:
+            logger.info("Test message", [1, 2, 3])
+            # Should print a warning about context type
+            assert any("context should be a dict" in str(call) for call in mock_print.call_args_list)
+            # Should print the log message
+            assert any("Test message" in str(call) for call in mock_print.call_args_list)
+
+    def test_unserializable_context(self):
+        """Test logging with unserializable object in context (should fallback to str)"""
+        logger = LoggerService()
+        class Unserializable:
+            pass
+        unserializable_obj = Unserializable()
+        context = {"bad": unserializable_obj}
+        with patch('builtins.print') as mock_print:
+            logger.info("Test unserializable context", context)
+            # Should print the log message
+            assert any("Test unserializable context" in str(call) for call in mock_print.call_args_list)
+            # Should not raise
+
+    def test_nested_dict_context(self):
+        """Test logging with nested dict context (should pretty print)"""
+        logger = LoggerService()
+        context = {"outer": {"inner": {"value": 42}}}
+        with patch('builtins.print') as mock_print:
+            logger.info("Test nested context", context)
+            # Should print the log message
+            assert any("Test nested context" in str(call) for call in mock_print.call_args_list)
+            # Should pretty print nested dict
+            assert any("inner" in str(call) for call in mock_print.call_args_list) 
