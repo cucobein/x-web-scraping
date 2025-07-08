@@ -8,21 +8,23 @@ from typing import Any, Dict, Optional
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 
-from src.utils.env_helper import get_environment
+from src.services.environment_service import EnvironmentService
 
 
 class FirebaseLogService:
     """Handles remote logging to Firebase Firestore and Storage"""
 
-    def __init__(self, logger=None, disabled: bool = False):
+    def __init__(self, logger=None, disabled: bool = False, env_service: Optional[EnvironmentService] = None):
         """
         Initialize Firebase Log Service
 
         Args:
             logger: LoggerService instance for local logging
             disabled: If True, completely disables Firebase logging (useful for tests)
+            env_service: Optional EnvironmentService for environment info
         """
         self.logger = logger
+        self.env_service = env_service
         self._initialized = False
         self._enabled = False
         self._firestore_client = None
@@ -115,7 +117,7 @@ class FirebaseLogService:
             log_doc = {
                 "timestamp": datetime.now().isoformat(),
                 "level": level.value.upper(),
-                "environment": get_environment().upper(),
+                "environment": self._get_environment().upper(),
                 "message": message,
                 "created_at": firestore.SERVER_TIMESTAMP,
             }
@@ -228,3 +230,9 @@ class FirebaseLogService:
                 "Failed to cleanup old logs from Firebase", {"error": str(e)}
             )
             return False
+
+    def _get_environment(self) -> str:
+        """Get environment value with fallback"""
+        if self.env_service:
+            return self.env_service.get_environment()
+        return EnvironmentService.get_default_environment()

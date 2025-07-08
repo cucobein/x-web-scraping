@@ -36,7 +36,10 @@ def setup_services():
         log_file_path="logs/app.log"
     ))
     
-    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService())
+    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService(
+        logger=provider.get(LoggerService),
+        env_service=provider.get(EnvironmentService)
+    ))
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
         mode=ConfigMode.FIREBASE
@@ -94,7 +97,11 @@ def setup_services_for_testing():
         log_file_path="logs/test.log"
     ))
     
-    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService())
+    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService(
+        logger=provider.get(LoggerService),
+        disabled=True,  # Disable Firebase in tests
+        env_service=provider.get(EnvironmentService)
+    ))
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
         mode=ConfigMode.FIXTURE  # Use fixture mode for tests

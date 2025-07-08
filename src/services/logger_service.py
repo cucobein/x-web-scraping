@@ -57,7 +57,11 @@ class LoggerService:
         self._async_worker_running = False
 
         # Firebase logging setup
-        self._firebase_logger = FirebaseLogService(self, disabled=firebase_disabled)
+        self._firebase_logger = FirebaseLogService(
+            logger=self, 
+            disabled=firebase_disabled,
+            env_service=self.env_service
+        )
 
         # Ensure log directory exists
         self._ensure_log_directory()
