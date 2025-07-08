@@ -7,6 +7,7 @@ All service registration happens here, following the ASP.NET Core pattern.
 
 from src.config.config_manager import ConfigManager, ConfigMode
 from src.services import get_service_provider
+from src.services.environment_service import EnvironmentService
 from src.services.logger_service import LoggerService
 from src.services.firebase_log_service import FirebaseLogService
 from src.services.rate_limiter import RateLimiter
@@ -28,6 +29,8 @@ def setup_services():
     provider = get_service_provider()
     
     # Core services
+    provider.register_singleton(EnvironmentService, lambda: EnvironmentService())
+    
     provider.register_singleton(LoggerService, lambda: LoggerService(
         firebase_disabled=False,
         log_file_path="logs/app.log"
@@ -84,6 +87,8 @@ def setup_services_for_testing():
     provider = get_service_provider()
     
     # Core services with test config
+    provider.register_singleton(EnvironmentService, lambda: EnvironmentService())
+    
     provider.register_singleton(LoggerService, lambda: LoggerService(
         firebase_disabled=True,  # Disable Firebase in tests
         log_file_path="logs/test.log"
