@@ -83,18 +83,18 @@ class FirebaseConfigManager:
         return {
             "monitoring_check_interval_dev": "30",
             "monitoring_check_interval_prod": "60",
-            "monitoring_headless_dev": "false",
+            "monitoring_headless_dev": "true",
             "monitoring_headless_prod": "true",
-            "monitoring_page_timeout_dev": "5000",
+            "monitoring_page_timeout_dev": "10000",
             "monitoring_page_timeout_prod": "10000",
-            "telegram_endpoint_dev": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
+            "telegram_endpoint_dev": "https://api-com-notifications-test.mobzilla.com/core/api/Telegram/SendMessage",
             "telegram_endpoint_prod": "https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             "telegram_api_key_dev": "47827973-e134-4ec1-9b11-458d3cc72962",
             "telegram_api_key_prod": "47827973-e134-4ec1-9b11-458d3cc72962",
-            "twitter_accounts_dev": '["nasa", "olaphone", "cucobein"]',
+            "twitter_accounts_dev": '["olaphone", "cucobein", "FreddyTameJr", "CDMXConsejeria", "ContraloriaCDMX", "FiscaliaCDMX", "ClaraBrugadaM", "Finanzas_CDMX", "SEBIEN_cdmx", "CulturaCiudadMx", "SedecoCDMX", "Vivienda_CDMX", "SECTEI_CDMX", "sgirpc_cdmx", "GobCDMX", "semujerescdmx", "SEDEMA_CDMX", "LaSEMOVI", "SOBSECDMX", "metropoliscdmx", "sepicdmx", "SSaludCdMx", "SSC_CDMX", "TrabajoCDMX", "turismocdmx", "C5_CDMX", "MetrobusCDMX", "Bomberos_CDMX", "SEGIAGUA", "UCS_GCDMX", "LaAgenciaCDMX", "DGRCivilCDMX", "DiversidadCDMX", "locatel_mx", "SCPPyBG", "SAPCI_CDMX", "icat_cdmx", "CedaGeneral", "PDI_FGJCDMX", "CFilmaCDMX", "MetroCDMX", "STECDMX", "micablebuscdmx", "RTP_CiudadDeMex", "InjuveCDMX"]',
             "twitter_accounts_prod": '["olaphone", "cucobein", "FreddyTameJr", "CDMXConsejeria", "ContraloriaCDMX", "FiscaliaCDMX", "ClaraBrugadaM", "Finanzas_CDMX", "SEBIEN_cdmx", "CulturaCiudadMx", "SedecoCDMX", "Vivienda_CDMX", "SECTEI_CDMX", "sgirpc_cdmx", "GobCDMX", "semujerescdmx", "SEDEMA_CDMX", "LaSEMOVI", "SOBSECDMX", "metropoliscdmx", "sepicdmx", "SSaludCdMx", "SSC_CDMX", "TrabajoCDMX", "turismocdmx", "C5_CDMX", "MetrobusCDMX", "Bomberos_CDMX", "SEGIAGUA", "UCS_GCDMX", "LaAgenciaCDMX", "DGRCivilCDMX", "DiversidadCDMX", "locatel_mx", "SCPPyBG", "SAPCI_CDMX", "icat_cdmx", "CedaGeneral", "PDI_FGJCDMX", "CFilmaCDMX", "MetroCDMX", "STECDMX", "micablebuscdmx", "RTP_CiudadDeMex", "InjuveCDMX"]',
-            "twitter_cookies_dev": '[{"name": "auth_token", "value": "47827973-e134-4ec1-9b11-458d3cc72962", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}, {"name": "ct0", "value": "47827973-e134-4ec1-9b11-458d3cc72962", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}]',
-            "twitter_cookies_prod": '[{"name": "auth_token", "value": "47827973-e134-4ec1-9b11-458d3cc72962", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}, {"name": "ct0", "value": "47827973-e134-4ec1-9b11-458d3cc72962", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}]',
+            "twitter_cookies_dev": '[{"name": "auth_token", "value": "7270affe26e68c1029d46043e56ee7a277eea5a6", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}, {"name": "ct0", "value": "a96116868e50f99c9b937cb69bd1abb9715829f55428ef01bb47fb773ccbf8888a70f140cddf5a399230f32c4fa85b3d60507d30a37fbfc2a254c10ffb7600d177d5457fa0c4d613e406080d76258f01", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}]',
+            "twitter_cookies_prod": '[{"name": "auth_token", "value": "7270affe26e68c1029d46043e56ee7a277eea5a6", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}, {"name": "ct0", "value": "a96116868e50f99c9b937cb69bd1abb9715829f55428ef01bb47fb773ccbf8888a70f140cddf5a399230f32c4fa85b3d60507d30a37fbfc2a254c10ffb7600d177d5457fa0c4d613e406080d76258f01", "domain": ".x.com", "path": "/", "secure": true, "httpOnly": false, "sameSite": "Lax"}]',
         }
 
     async def load_config(self) -> Dict[str, Any]:
