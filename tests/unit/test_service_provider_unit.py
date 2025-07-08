@@ -9,8 +9,8 @@ import pytest
 from src.services.service_provider import ServiceProvider
 
 
-class TestService:
-    """Test service class"""
+class ServiceProviderTest:
+    """Service class for ServiceProvider unit tests"""
     def __init__(self, value: str = "default"):
         self.value = value
 
@@ -25,24 +25,24 @@ class TestServiceProvider:
     def test_register_singleton(self):
         """Test registering a singleton service"""
         # Arrange
-        factory = lambda: TestService("test_value")
+        factory = lambda: ServiceProviderTest("test_value")
         
         # Act
-        self.provider.register_singleton(TestService, factory)
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Assert
-        assert self.provider.is_registered(TestService)
+        assert self.provider.is_registered(ServiceProviderTest)
         assert not self.provider.is_registered(str)  # Different type
 
     def test_get_singleton_returns_same_instance(self):
         """Test that get() returns the same instance for singletons"""
         # Arrange
-        factory = lambda: TestService("test_value")
-        self.provider.register_singleton(TestService, factory)
+        factory = lambda: ServiceProviderTest("test_value")
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Act
-        instance1 = self.provider.get(TestService)
-        instance2 = self.provider.get(TestService)
+        instance1 = self.provider.get(ServiceProviderTest)
+        instance2 = self.provider.get(ServiceProviderTest)
         
         # Assert
         assert instance1 is instance2
@@ -51,12 +51,12 @@ class TestServiceProvider:
     def test_create_new_returns_different_instances(self):
         """Test that create_new() returns different instances"""
         # Arrange
-        factory = lambda: TestService("test_value")
-        self.provider.register_singleton(TestService, factory)
+        factory = lambda: ServiceProviderTest("test_value")
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Act
-        instance1 = self.provider.create_new(TestService)
-        instance2 = self.provider.create_new(TestService)
+        instance1 = self.provider.create_new(ServiceProviderTest)
+        instance2 = self.provider.create_new(ServiceProviderTest)
         
         # Assert
         assert instance1 is not instance2
@@ -66,39 +66,39 @@ class TestServiceProvider:
     def test_get_unregistered_service_raises_keyerror(self):
         """Test that getting unregistered service raises KeyError"""
         # Act & Assert
-        with pytest.raises(KeyError, match="TestService not registered"):
-            self.provider.get(TestService)
+        with pytest.raises(KeyError, match="ServiceProviderTest not registered"):
+            self.provider.get(ServiceProviderTest)
 
     def test_create_new_unregistered_service_raises_keyerror(self):
         """Test that creating unregistered service raises KeyError"""
         # Act & Assert
-        with pytest.raises(KeyError, match="TestService not registered"):
-            self.provider.create_new(TestService)
+        with pytest.raises(KeyError, match="ServiceProviderTest not registered"):
+            self.provider.create_new(ServiceProviderTest)
 
     def test_is_registered(self):
         """Test is_registered method"""
         # Arrange
-        factory = lambda: TestService()
+        factory = lambda: ServiceProviderTest()
         
         # Act & Assert
-        assert not self.provider.is_registered(TestService)
+        assert not self.provider.is_registered(ServiceProviderTest)
         
-        self.provider.register_singleton(TestService, factory)
-        assert self.provider.is_registered(TestService)
+        self.provider.register_singleton(ServiceProviderTest, factory)
+        assert self.provider.is_registered(ServiceProviderTest)
 
     def test_clear_removes_all_services(self):
         """Test that clear() removes all registered services"""
         # Arrange
-        factory = lambda: TestService()
-        self.provider.register_singleton(TestService, factory)
+        factory = lambda: ServiceProviderTest()
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Act
         self.provider.clear()
         
         # Assert
-        assert not self.provider.is_registered(TestService)
+        assert not self.provider.is_registered(ServiceProviderTest)
         with pytest.raises(KeyError):
-            self.provider.get(TestService)
+            self.provider.get(ServiceProviderTest)
 
     def test_thread_safety_singleton_creation(self):
         """Test that singleton creation is thread-safe"""
@@ -109,15 +109,15 @@ class TestServiceProvider:
             nonlocal call_count
             call_count += 1
             time.sleep(0.01)  # Simulate slow initialization
-            return TestService(f"instance_{call_count}")
+            return ServiceProviderTest(f"instance_{call_count}")
         
-        self.provider.register_singleton(TestService, factory)
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Act - Create multiple threads trying to get the service simultaneously
         results = []
         
         def get_service():
-            results.append(self.provider.get(TestService))
+            results.append(self.provider.get(ServiceProviderTest))
         
         threads = [threading.Thread(target=get_service) for _ in range(5)]
         for thread in threads:
@@ -139,15 +139,15 @@ class TestServiceProvider:
             nonlocal call_count
             call_count += 1
             time.sleep(0.01)  # Simulate slow initialization
-            return TestService(f"instance_{call_count}")
+            return ServiceProviderTest(f"instance_{call_count}")
         
-        self.provider.register_singleton(TestService, factory)
+        self.provider.register_singleton(ServiceProviderTest, factory)
         
         # Act - Create multiple threads trying to create new instances simultaneously
         results = []
         
         def create_new_service():
-            results.append(self.provider.create_new(TestService))
+            results.append(self.provider.create_new(ServiceProviderTest))
         
         threads = [threading.Thread(target=create_new_service) for _ in range(5)]
         for thread in threads:
