@@ -34,19 +34,22 @@ The application uses environment-based configuration to support different deploy
 
 ### Environment Implementation
 
-The environment system is implemented in `src/utils/env_helper.py`:
+The environment system is implemented using the `EnvironmentService` for dependency injection:
 ```python
-from src.utils.env_helper import get_environment, is_development, is_production
+from src.services.environment_service import EnvironmentService
+
+# Get environment service (injected via DI)
+env_service = EnvironmentService()
 
 # Get current environment
-env = get_environment()  # Returns "dev" or "prod"
+env = env_service.get_environment()  # Returns "dev" or "prod"
 
 # Check environment type
-if is_development():
+if env_service.is_development():
     # Use development settings
     pass
 
-if is_production():
+if env_service.is_production():
     # Use production settings
     pass
 ```
@@ -59,7 +62,6 @@ if is_production():
 **Components:**
 - `config_manager.py`: Flexible configuration management with multiple modes
 - `firebase_config_manager.py`: Firebase Remote Config integration
-- `env_helper.py`: Environment detection and management utilities
 
 **Configuration Modes:**
 - **LOCAL**: Load from local JSON files (development)
@@ -510,3 +512,41 @@ logger = LoggerService(
 ```
 
 All log files are stored in `logs/` (ignored by git). The logging system is robust, extensible, and easy to use throughout the codebase.
+
+## 🛠️ Service Registration & Dependency Injection
+
+This project uses a robust **Dependency Injection (DI)** pattern to manage all core services, making the codebase modular, testable, and easy to extend.
+
+### How It Works
+- All services (Logger, Config, Notification, Scraper, etc.) are registered in one place: `src/services/service_registration.py` (the "composition root").
+- The custom `ServiceProvider` class manages singleton and transient service lifetimes, ensuring thread safety and explicit wiring.
+- Services are injected via constructors—no hidden singletons or fallback instantiation.
+- Environment management is handled by the `EnvironmentService`, which is injected where needed.
+
+### Example: Registering and Using Services
+
+```python
+from src.services.service_registration import setup_services
+
+provider = setup_services()
+logger = provider.get(LoggerService)
+config = provider.get(ConfigManager)
+notification = provider.get(NotificationService)
+```
+
+**Adding a New Service:**
+1. Register it in `service_registration.py` using `provider.register_singleton(...)`.
+2. Inject it into consumers via constructor arguments.
+
+### Environment Management
+- The `EnvironmentService` provides environment info (`dev`/`prod`) and is injected into services that need it.
+- No direct environment variable access in business logic—always use the service.
+
+### Benefits
+- **Explicit dependencies**: No hidden state or magic singletons.
+- **Testability**: All services can be mocked or swapped in tests.
+- **Environment safety**: No accidental production/test config leaks.
+- **Maintainability**: All wiring is in one place, easy to audit and change.
+
+### Migration Note
+All legacy fallback logic and the old `env_helper.py` have been removed. All services now require explicit injection of their dependencies. All environment checks use `EnvironmentService`. All tests use explicit DI. All documentation is up to date.

@@ -35,7 +35,7 @@ class FirebaseConfigManager:
         self.service_account_path = service_account_path
         self._config_cache: Optional[Dict[str, Any]] = None
         self._initialized = False
-        self.logger = logger or LoggerService()
+        self.logger = logger
         self.env_service = env_service
 
     def _get_environment(self) -> str:
