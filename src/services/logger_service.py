@@ -15,6 +15,7 @@ from threading import Lock
 import time
 import functools
 from contextlib import contextmanager, AbstractContextManager
+import glob
 
 from src.utils.env_helper import get_environment
 
@@ -74,9 +75,6 @@ class LoggerService:
         # Ensure log directory exists
         self._ensure_log_directory()
 
-        # Check if log file needs rotation
-        self._check_rotation()
-
         # Mark as initialized
         self._initialized = True
 
@@ -93,37 +91,39 @@ class LoggerService:
 
     def _ensure_log_directory(self):
         """Ensure log directory exists"""
-        log_dir = Path(self.log_file_path).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
+        log_dir = os.path.dirname(self.log_file_path)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
 
-    def _check_rotation(self):
-        """Check if log file needs rotation"""
-        if not os.path.exists(self.log_file_path):
-            return
-
-        file_size_mb = os.path.getsize(self.log_file_path) / (1024 * 1024)
-        if file_size_mb >= self.max_file_size_mb:
-            self._rotate_log_file()
+    def _get_backup_filename(self) -> str:
+        """Generate a timestamped backup filename for the log file."""
+        base, ext = os.path.splitext(self.log_file_path)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"{base}.{timestamp}{ext}"
 
     def _rotate_log_file(self):
-        """Rotate log file"""
-        log_path = Path(self.log_file_path)
+        """Rotate the log file with a timestamped backup, keep only backup_count backups."""
+        with self._queue_lock:
+            if os.path.exists(self.log_file_path):
+                backup_file = self._get_backup_filename()
+                os.rename(self.log_file_path, backup_file)
+                # Remove old backups if exceeding backup_count
+                base, ext = os.path.splitext(self.log_file_path)
+                pattern = f"{base}.*{ext}"
+                backups = sorted(glob.glob(pattern), reverse=True)
+                if len(backups) > self.backup_count:
+                    for old_backup in backups[self.backup_count:]:
+                        try:
+                            os.remove(old_backup)
+                        except Exception as e:
+                            print(f"⚠️ Failed to remove old log backup: {e}")
 
-        # Remove oldest backup if it exists
-        oldest_backup = log_path.with_suffix(f".{self.backup_count}.log")
-        if oldest_backup.exists():
-            oldest_backup.unlink()
-
-        # Shift existing backups
-        for i in range(self.backup_count - 1, 0, -1):
-            old_backup = log_path.with_suffix(f".{i}.log")
-            new_backup = log_path.with_suffix(f".{i + 1}.log")
-            if old_backup.exists():
-                old_backup.rename(new_backup)
-
-        # Rename current log file to .1.log
-        if log_path.exists():
-            log_path.rename(log_path.with_suffix(".1.log"))
+    def _check_rotation(self):
+        """Check if log file needs rotation (runtime, before every write)."""
+        if os.path.exists(self.log_file_path):
+            size_mb = os.path.getsize(self.log_file_path) / (1024 * 1024)
+            if size_mb >= self.max_file_size_mb:
+                self._rotate_log_file()
 
     def _get_timestamp(self) -> str:
         """Get current timestamp for logging"""
@@ -254,8 +254,9 @@ class LoggerService:
     def _log_to_file(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
     ):
-        """Log message to file"""
+        """Log message to file, with runtime rotation."""
         try:
+            self._check_rotation()
             if self.json_output:
                 # JSON format for machine parsing
                 json_log = self._format_json_log(level, message, context)

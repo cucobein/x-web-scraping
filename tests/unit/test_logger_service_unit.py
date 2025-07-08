@@ -7,6 +7,10 @@ import time
 from unittest.mock import patch, MagicMock
 from src.services.logger_service import LoggerService, LogLevel
 import asyncio
+import tempfile
+import shutil
+import os
+from datetime import datetime
 
 
 class TestLoggerService:
@@ -315,3 +319,32 @@ class TestLoggerService:
             finish_call = mock_info.call_args_list[-1][0][1]
             assert 'operation' in finish_call and finish_call['operation'] == 'decorated_async'
             assert 'duration_seconds' in finish_call and finish_call['duration_seconds'] > 0 
+
+    def test_log_rotation_with_timestamped_backup(self):
+        """Test that log rotation creates a timestamped backup and keeps only backup_count files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            log_file = os.path.join(tmpdir, "test.log")
+            logger = LoggerService(log_file_path=log_file, max_file_size_mb=0.0001, backup_count=2)  # ~100 bytes
+            logger.set_json_output(False)
+            # Patch datetime to control timestamp
+            fake_time = datetime(2024, 6, 7, 15, 30, 45)
+            with patch("src.services.logger_service.datetime") as mock_dt:
+                mock_dt.now.return_value = fake_time
+                mock_dt.strftime = datetime.strftime
+                # Write until rotation triggers
+                for _ in range(10):
+                    logger.info("x" * 50)  # Each write ~50 bytes
+                # Check that a backup file with timestamp exists
+                base, ext = os.path.splitext(log_file)
+                expected_backup = f"{base}.20240607_153045{ext}"
+                assert os.path.exists(expected_backup)
+                # Write more to trigger another rotation (new timestamp)
+                fake_time2 = datetime(2024, 6, 7, 15, 31, 0)
+                mock_dt.now.return_value = fake_time2
+                for _ in range(10):
+                    logger.info("y" * 50)
+                expected_backup2 = f"{base}.20240607_153100{ext}"
+                assert os.path.exists(expected_backup2)
+                # Only 2 backups should be kept
+                backups = [f for f in os.listdir(tmpdir) if f.startswith("test.") and f.endswith(".log") and f != "test.log"]
+                assert len(backups) == 2 
