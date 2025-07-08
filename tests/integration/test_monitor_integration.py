@@ -19,7 +19,11 @@ class TestMonitorIntegration:
     @pytest.fixture
     def monitor(self):
         """Create monitor instance with test config"""
-        return XMonitor("config/config.json")
+        monitor = XMonitor()
+        # Override config manager to use FIXTURE mode for integration tests
+        from src.config.config_manager import ConfigManager, ConfigMode
+        monitor.config_manager = ConfigManager(ConfigMode.FIXTURE, environment=None, logger=monitor.logger)
+        return monitor
 
     @pytest_asyncio.fixture
     async def browser_manager(self):

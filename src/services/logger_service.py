@@ -26,6 +26,15 @@ class LogLevel(Enum):
 class LoggerService:
     """Robust logging service with console and file output"""
 
+    _instance = None
+    _initialized = False
+
+    def __new__(cls, *args, **kwargs):
+        """Singleton pattern to ensure only one logger instance exists"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(
         self,
         log_file_path: str = "logs/app.log",
@@ -40,6 +49,10 @@ class LoggerService:
             max_file_size_mb: Maximum log file size in MB before rotation
             backup_count: Number of backup files to keep
         """
+        # Only initialize once
+        if self._initialized:
+            return
+
         self.log_file_path = log_file_path
         self.max_file_size_mb = max_file_size_mb
         self.backup_count = backup_count
@@ -49,6 +62,16 @@ class LoggerService:
 
         # Check if log file needs rotation
         self._check_rotation()
+
+        # Mark as initialized
+        self._initialized = True
+
+    @classmethod
+    def get_instance(cls) -> 'LoggerService':
+        """Get the singleton logger instance"""
+        if cls._instance is None:
+            cls._instance = LoggerService()
+        return cls._instance
 
     def _ensure_log_directory(self):
         """Ensure log directory exists"""
