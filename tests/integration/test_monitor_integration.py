@@ -11,6 +11,8 @@ import pytest_asyncio
 from src.core.monitor import XMonitor
 from src.models.tweet import Tweet
 from src.services.browser_manager import BrowserManager
+from src.services.notification_service import NotificationService
+from src.services.telegram_notification_service import TelegramNotificationService
 
 
 class TestMonitorIntegration:
@@ -26,6 +28,20 @@ class TestMonitorIntegration:
         monitor.config_manager = ConfigManager(
             ConfigMode.FIXTURE, environment=None, logger=monitor.logger
         )
+        
+        # Fix: Override notification_service with proper dependencies
+        telegram_service = TelegramNotificationService(
+            endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
+            api_key="47827973-e134-4ec1-9b11-458d3cc72962",
+            logger=monitor.logger
+        )
+        
+        monitor.notification_service = NotificationService(
+            config_manager=monitor.config_manager,
+            logger=monitor.logger,
+            telegram_service=telegram_service
+        )
+        
         return monitor
 
     @pytest_asyncio.fixture

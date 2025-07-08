@@ -15,27 +15,21 @@ class NotificationService:
 
     def __init__(
         self,
-        config_manager: Optional[ConfigManager] = None,
-        logger: Optional[LoggerService] = None,
+        config_manager: ConfigManager,
+        logger: LoggerService,
+        telegram_service: Optional[TelegramNotificationService] = None,
     ):
         """
         Initialize notification service
 
         Args:
-            config_manager: Configuration manager instance
-            logger: Optional logger service
+            config_manager: Configuration manager instance (required)
+            logger: Logger service (required)
+            telegram_service: Optional Telegram notification service
         """
         self.config_manager = config_manager
-        self.telegram_service = None
-        self.logger = logger or LoggerService()
-
-        # Initialize Telegram service if configured
-        if self.config_manager and self.config_manager.telegram_enabled:
-            self.telegram_service = TelegramNotificationService(
-                endpoint=self.config_manager.telegram_endpoint,
-                api_key=self.config_manager.telegram_api_key,
-                logger=self.logger,
-            )
+        self.logger = logger
+        self.telegram_service = telegram_service
 
     async def notify_new_tweet(self, tweet: Tweet):
         """

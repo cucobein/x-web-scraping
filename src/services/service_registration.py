@@ -58,16 +58,23 @@ def setup_services():
     
     provider.register_singleton(TweetRepository, lambda: TweetRepository())
     
-    provider.register_singleton(NotificationService, lambda: NotificationService(
-        config_manager=provider.get(ConfigManager),
-        logger=provider.get(LoggerService)
-    ))
-    
     # Transient services (factories return new instances)
     provider.register_singleton(TelegramNotificationService, lambda: TelegramNotificationService(
         endpoint=provider.get(ConfigManager).telegram_endpoint,
         api_key=provider.get(ConfigManager).telegram_api_key,
         logger=provider.get(LoggerService)
+    ))
+    
+    # Get Telegram service conditionally
+    telegram_service = None
+    config_manager = provider.get(ConfigManager)
+    if config_manager.telegram_enabled:
+        telegram_service = provider.get(TelegramNotificationService)
+    
+    provider.register_singleton(NotificationService, lambda: NotificationService(
+        config_manager=config_manager,
+        logger=provider.get(LoggerService),
+        telegram_service=telegram_service
     ))
     
     provider.register_singleton(HttpClient, lambda: HttpClient(
@@ -82,65 +89,4 @@ def setup_services():
     return provider
 
 
-def setup_services_for_testing():
-    """
-    Setup services with test configuration
-    
-    Used for integration tests that need the provider.
-    Unit tests should use direct instantiation instead.
-    """
-    provider = get_service_provider()
-    
-    # Core services with test config
-    provider.register_singleton(EnvironmentService, lambda: EnvironmentService())
-    
-    provider.register_singleton(LoggerService, lambda: LoggerService(
-        firebase_disabled=True,  # Disable Firebase in tests
-        log_file_path="logs/test.log"
-    ))
-    
-    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService(
-        logger=provider.get(LoggerService),
-        disabled=True,  # Disable Firebase in tests
-        env_service=provider.get(EnvironmentService)
-    ))
-    
-    provider.register_singleton(ConfigManager, lambda: ConfigManager(
-        mode=ConfigMode.FIXTURE,  # Use fixture mode for tests
-        logger=provider.get(LoggerService),
-        env_service=provider.get(EnvironmentService)
-    ))
-    
-    provider.register_singleton(RateLimiter, lambda: RateLimiter())
-    
-    # Business services with test config
-    provider.register_singleton(BrowserManager, lambda: BrowserManager(
-        headless=True,
-        rate_limiter=provider.get(RateLimiter),
-        logger=provider.get(LoggerService)
-    ))
-    
-    provider.register_singleton(TweetRepository, lambda: TweetRepository())
-    
-    provider.register_singleton(NotificationService, lambda: NotificationService(
-        config_manager=provider.get(ConfigManager),
-        logger=provider.get(LoggerService)
-    ))
-    
-    # Transient services for testing
-    provider.register_singleton(TelegramNotificationService, lambda: TelegramNotificationService(
-        endpoint=provider.get(ConfigManager).telegram_endpoint,
-        api_key=provider.get(ConfigManager).telegram_api_key,
-        logger=provider.get(LoggerService)
-    ))
-    
-    provider.register_singleton(HttpClient, lambda: HttpClient(
-        timeout=provider.get(ConfigManager).page_timeout
-    ))
-    
-    provider.register_singleton(TwitterScraper, lambda: TwitterScraper(
-        page_timeout=provider.get(ConfigManager).page_timeout,
-        logger=provider.get(LoggerService)
-    ))
-    
-    return provider 
+ 
