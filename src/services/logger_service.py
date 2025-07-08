@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from queue import Queue
 from threading import Lock
+import time
+import functools
+from contextlib import contextmanager, AbstractContextManager
 
 from src.utils.env_helper import get_environment
 
@@ -413,3 +416,62 @@ class LoggerService:
         # Also queue the exception details
         exception_msg = f"Exception: {type(exception).__name__}: {str(exception)}"
         self._queue_log_entry(LogLevel.ERROR, exception_msg, context)
+
+    @contextmanager
+    def timing(self, operation_name: str, context: Optional[Dict[str, Any]] = None) -> AbstractContextManager:
+        """
+        Context manager for timing a code block.
+        Usage:
+            with logger.timing('my_operation'):
+                ...
+        """
+        start = time.perf_counter()
+        self.info(f"[Timing] Started: {operation_name}", context)
+        try:
+            yield
+        finally:
+            end = time.perf_counter()
+            duration = end - start
+            timing_context = dict(context) if context else {}
+            timing_context.update({"operation": operation_name, "duration_seconds": duration})
+            self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+
+    def timeit(self, operation_name: str, context: Optional[Dict[str, Any]] = None):
+        """
+        Decorator for timing a function (sync or async).
+        Usage:
+            @logger.timeit('my_func')
+            def my_func(...): ...
+        """
+        def decorator(func):
+            if asyncio.iscoroutinefunction(func):
+                @functools.wraps(func)
+                async def async_wrapper(*args, **kwargs):
+                    start = time.perf_counter()
+                    self.info(f"[Timing] Started: {operation_name}", context)
+                    try:
+                        result = await func(*args, **kwargs)
+                        return result
+                    finally:
+                        end = time.perf_counter()
+                        duration = end - start
+                        timing_context = dict(context) if context else {}
+                        timing_context.update({"operation": operation_name, "duration_seconds": duration})
+                        self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+                return async_wrapper
+            else:
+                @functools.wraps(func)
+                def sync_wrapper(*args, **kwargs):
+                    start = time.perf_counter()
+                    self.info(f"[Timing] Started: {operation_name}", context)
+                    try:
+                        result = func(*args, **kwargs)
+                        return result
+                    finally:
+                        end = time.perf_counter()
+                        duration = end - start
+                        timing_context = dict(context) if context else {}
+                        timing_context.update({"operation": operation_name, "duration_seconds": duration})
+                        self.info(f"[Timing] Finished: {operation_name} (duration: {duration:.4f}s)", timing_context)
+                return sync_wrapper
+        return decorator

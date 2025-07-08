@@ -6,6 +6,7 @@ import pytest
 import time
 from unittest.mock import patch, MagicMock
 from src.services.logger_service import LoggerService, LogLevel
+import asyncio
 
 
 class TestLoggerService:
@@ -264,3 +265,53 @@ class TestLoggerService:
             assert any("Test nested context" in str(call) for call in mock_print.call_args_list)
             # Should pretty print nested dict
             assert any("inner" in str(call) for call in mock_print.call_args_list) 
+
+    def test_timing_context_manager(self):
+        """Test timing context manager logs start and end with duration"""
+        logger = LoggerService()
+        with patch.object(logger, 'info') as mock_info:
+            with logger.timing('test_operation'):
+                time.sleep(0.01)
+            # Should log start and finish
+            calls = [c[0][0] for c in mock_info.call_args_list]
+            assert any('[Timing] Started: test_operation' in call for call in calls)
+            assert any('[Timing] Finished: test_operation' in call for call in calls)
+            # Check duration in context
+            finish_call = mock_info.call_args_list[-1][0][1]
+            assert 'operation' in finish_call and finish_call['operation'] == 'test_operation'
+            assert 'duration_seconds' in finish_call and finish_call['duration_seconds'] > 0
+
+    def test_timeit_decorator_sync(self):
+        """Test timeit decorator for sync function"""
+        logger = LoggerService()
+        with patch.object(logger, 'info') as mock_info:
+            @logger.timeit('decorated_sync')
+            def foo():
+                time.sleep(0.01)
+                return 42
+            result = foo()
+            assert result == 42
+            calls = [c[0][0] for c in mock_info.call_args_list]
+            assert any('[Timing] Started: decorated_sync' in call for call in calls)
+            assert any('[Timing] Finished: decorated_sync' in call for call in calls)
+            finish_call = mock_info.call_args_list[-1][0][1]
+            assert 'operation' in finish_call and finish_call['operation'] == 'decorated_sync'
+            assert 'duration_seconds' in finish_call and finish_call['duration_seconds'] > 0
+
+    @pytest.mark.asyncio
+    async def test_timeit_decorator_async(self):
+        """Test timeit decorator for async function"""
+        logger = LoggerService()
+        with patch.object(logger, 'info') as mock_info:
+            @logger.timeit('decorated_async')
+            async def bar():
+                await asyncio.sleep(0.01)
+                return 99
+            result = await bar()
+            assert result == 99
+            calls = [c[0][0] for c in mock_info.call_args_list]
+            assert any('[Timing] Started: decorated_async' in call for call in calls)
+            assert any('[Timing] Finished: decorated_async' in call for call in calls)
+            finish_call = mock_info.call_args_list[-1][0][1]
+            assert 'operation' in finish_call and finish_call['operation'] == 'decorated_async'
+            assert 'duration_seconds' in finish_call and finish_call['duration_seconds'] > 0 
