@@ -11,19 +11,19 @@ from src.services.logger_service import LoggerService
 class TelegramNotificationService:
     """Handles sending notifications to Telegram endpoint"""
 
-    def __init__(self, endpoint: str, api_key: str, logger: LoggerService = None):
+    def __init__(self, endpoint: str, api_key: str, logger: LoggerService):
         """
         Initialize Telegram notification service
 
         Args:
             endpoint: Telegram endpoint URL
             api_key: API key for authentication
-            logger: Optional logger service
+            logger: Logger service (required)
         """
         self.endpoint = endpoint
         self.api_key = api_key
         self.http_client = HttpClient()
-        self.logger = logger or LoggerService()
+        self.logger = logger
 
     async def _send_telegram_request(
         self, request: TelegramMessageRequest, headers: dict

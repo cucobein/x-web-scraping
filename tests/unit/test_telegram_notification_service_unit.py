@@ -6,6 +6,7 @@ import pytest
 
 from src.models.tweet import Tweet
 from src.services.telegram_notification_service import TelegramNotificationService
+from src.services.logger_service import LoggerService
 
 
 class TestTelegramNotificationService:
@@ -14,9 +15,11 @@ class TestTelegramNotificationService:
     @pytest.fixture
     def telegram_service(self):
         """Create Telegram service instance"""
+        logger = LoggerService(firebase_disabled=True)
         return TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="test-api-key",
+            logger=logger,
         )
 
     @pytest.fixture
