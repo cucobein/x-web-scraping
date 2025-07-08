@@ -3,10 +3,10 @@
 from unittest.mock import PropertyMock, patch
 
 from src.config.config_manager import ConfigManager, ConfigMode
-from src.services.notification_service import NotificationService
-from src.services.logger_service import LoggerService
-from src.services.telegram_notification_service import TelegramNotificationService
 from src.services.http_client_service import HttpClientService
+from src.services.logger_service import LoggerService
+from src.services.notification_service import NotificationService
+from src.services.telegram_notification_service import TelegramNotificationService
 
 
 class TestNotificationService:
@@ -22,12 +22,12 @@ class TestNotificationService:
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="47827973-e134-4ec1-9b11-458d3cc72962",
             http_client=http_client,
-            logger=logger
+            logger=logger,
         )
         service_with_telegram = NotificationService(
             config_manager=config_with_telegram,
             telegram_service=telegram_service,
-            logger=logger
+            logger=logger,
         )
         assert service_with_telegram.telegram_service is not None
         assert (
@@ -45,9 +45,7 @@ class TestNotificationService:
         logger = LoggerService()  # Simple logger for tests
         config_without_telegram = ConfigManager(ConfigMode.LOCAL, logger=logger)
         service_without_telegram = NotificationService(
-            config_manager=config_without_telegram,
-            telegram_service=None,
-            logger=logger
+            config_manager=config_without_telegram, telegram_service=None, logger=logger
         )
         assert service_without_telegram.telegram_service is None
 
@@ -61,8 +59,6 @@ class TestNotificationService:
             logger = LoggerService()  # Simple logger for tests
             config_disabled = ConfigManager(ConfigMode.LOCAL, logger=logger)
             service_disabled = NotificationService(
-                config_manager=config_disabled,
-                telegram_service=None,
-                logger=logger
+                config_manager=config_disabled, telegram_service=None, logger=logger
             )
             assert service_disabled.telegram_service is None

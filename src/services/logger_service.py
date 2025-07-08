@@ -32,7 +32,14 @@ class LogLevel(Enum):
 class LoggerService:
     """Logger service for application-wide logging"""
 
-    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, environment_service: Optional[EnvironmentService] = None):
+    def __init__(
+        self,
+        log_file_path: str = "logs/app.log",
+        max_file_size_mb: int = 10,
+        backup_count: int = 5,
+        json_output: bool = False,
+        environment_service: Optional[EnvironmentService] = None,
+    ):
         """
         Initialize logger service
 
@@ -256,8 +263,6 @@ class LoggerService:
             # Don't let file logging failures break the app
             print(f"⚠️ Failed to write to log file: {e}")
 
-
-
     def log(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
     ):
@@ -274,8 +279,6 @@ class LoggerService:
 
         # Log to file
         self._log_to_file(level, message, context)
-
-
 
     def debug(self, message: str, context: Optional[Dict[str, Any]] = None):
         """Log debug message"""
@@ -487,5 +490,3 @@ class LoggerService:
                 return sync_wrapper
 
         return decorator
-
-

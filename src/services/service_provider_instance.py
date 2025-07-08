@@ -10,11 +10,12 @@ from .service_provider import ServiceProvider
 # Module-level singleton instance
 _service_provider = ServiceProvider()
 
+
 def get_service_provider() -> ServiceProvider:
     """
     Get the singleton ServiceProvider instance.
-    
+
     Returns:
         ServiceProvider: The singleton instance
     """
-    return _service_provider 
+    return _service_provider

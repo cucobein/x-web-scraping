@@ -6,9 +6,9 @@ import json
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from src.services.environment_service import EnvironmentService
 from src.services.firebase_service import FirebaseService
 from src.services.logger_service import LoggerService
-from src.services.environment_service import EnvironmentService
 
 
 class ConfigMode(Enum):
@@ -92,7 +92,7 @@ class ConfigManager:
         """Load configuration from Firebase Remote Config"""
         if not self._firebase_service:
             raise Exception("Firebase service not provided")
-        
+
         if not self._firebase_service.is_initialized():
             if not self._firebase_service.initialize():
                 raise Exception("Failed to initialize Firebase service")
@@ -135,8 +135,6 @@ class ConfigManager:
                 {"error": str(e)},
             )
             return self._load_from_file()
-
-
 
     def _load_from_file(self) -> Dict[str, Any]:
         """Load configuration from JSON file"""

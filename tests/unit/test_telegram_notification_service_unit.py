@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.models.tweet import Tweet
-from src.services.telegram_notification_service import TelegramNotificationService
-from src.services.logger_service import LoggerService
 from src.services.http_client_service import HttpClientService
+from src.services.logger_service import LoggerService
+from src.services.telegram_notification_service import TelegramNotificationService
 
 
 class TestTelegramNotificationService:

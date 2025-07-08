@@ -157,7 +157,6 @@ class TestLoggerService:
 
     def test_log_level_enum(self):
         """Test LogLevel enum values"""
-        logger = LoggerService(json_output=False)
         assert LogLevel.DEBUG.value == "debug"
         assert LogLevel.INFO.value == "info"
         assert LogLevel.WARNING.value == "warning"
@@ -346,7 +345,10 @@ class TestLoggerService:
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "test.log")
             logger = LoggerService(
-                log_file_path=log_file, max_file_size_mb=0.0001, backup_count=2, json_output=False
+                log_file_path=log_file,
+                max_file_size_mb=0.0001,
+                backup_count=2,
+                json_output=False,
             )  # ~100 bytes
             # Patch datetime to control timestamp
             fake_time = datetime(2024, 6, 7, 15, 30, 45)

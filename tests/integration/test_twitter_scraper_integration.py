@@ -8,9 +8,9 @@ import pytest
 import pytest_asyncio
 
 from src.services.browser_manager import BrowserManager
-from src.services.twitter_scraper import TwitterScraper
-from src.services.rate_limiter_service import RateLimiterService
 from src.services.logger_service import LoggerService
+from src.services.rate_limiter_service import RateLimiterService
+from src.services.twitter_scraper import TwitterScraper
 
 
 class TestTwitterScraperIntegration:
@@ -28,9 +28,7 @@ class TestTwitterScraperIntegration:
         rate_limiter = RateLimiterService()
         logger = LoggerService()  # Simple logger for tests
         manager = BrowserManager(
-            rate_limiter=rate_limiter,
-            logger=logger,
-            headless=True
+            rate_limiter=rate_limiter, logger=logger, headless=True
         )
         await manager.start()
         yield manager

@@ -17,7 +17,7 @@ class FirebaseService:
     def __init__(self, env_service: Optional[EnvironmentService] = None):
         """
         Initialize Firebase service
-        
+
         Args:
             env_service: Optional EnvironmentService for environment info
         """
@@ -30,7 +30,7 @@ class FirebaseService:
     def initialize(self) -> bool:
         """
         Initialize Firebase Admin SDK if not already done
-        
+
         Returns:
             True if successful, False otherwise
         """
@@ -43,18 +43,17 @@ class FirebaseService:
         try:
             # Apply nest_asyncio to handle event loop issues
             import nest_asyncio
+
             nest_asyncio.apply()
-            
+
             # Initialize Firebase app if not already done
             if not firebase_admin._apps:
                 cred = credentials.Certificate(self.service_account_path)
-                firebase_admin.initialize_app(cred, {
-                    "projectId": self.project_id
-                })
+                firebase_admin.initialize_app(cred, {"projectId": self.project_id})
 
             # Initialize remote config client
             self._remote_config_client = remote_config
-            
+
             self._initialized = True
             return True
 
@@ -93,18 +92,19 @@ class FirebaseService:
         try:
             # Apply nest_asyncio to handle event loop issues
             import nest_asyncio
+
             nest_asyncio.apply()
-            
+
             # Create a new event loop if none exists
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            
+
             # Run the async function
             return loop.run_until_complete(_load_config_async())
-            
+
         except Exception as e:
             raise Exception(f"Failed to load config from Firebase: {str(e)}")
 
@@ -146,4 +146,4 @@ class FirebaseService:
             "telegram_api_key_prod": "47827973-e134-4ec1-9b11-458d3cc72962",
             "twitter_accounts_dev": '["olaphone", "cucobein", "FreddyTameJr", "CDMXConsejeria", "ContraloriaCDMX", "FiscaliaCDMX", "ClaraBrugadaM", "Finanzas_CDMX", "SEBIEN_cdmx", "CulturaCiudadMx", "SedecoCDMX", "Vivienda_CDMX", "SECTEI_CDMX", "sgirpc_cdmx", "GobCDMX", "semujerescdmx", "SEDEMA_CDMX", "LaSEMOVI", "SOBSECDMX", "metropoliscdmx", "sepicdmx", "SSaludCdMx", "SSC_CDMX", "TrabajoCDMX", "turismocdmx", "C5_CDMX", "MetrobusCDMX", "Bomberos_CDMX", "SEGIAGUA", "UCS_GCDMX", "LaAgenciaCDMX", "DGRCivilCDMX", "DiversidadCDMX", "locatel_mx", "SCPPyBG", "SAPCI_CDMX", "icat_cdmx", "CedaGeneral", "PDI_FGJCDMX", "CFilmaCDMX", "MetroCDMX", "STECDMX", "micablebuscdmx", "RTP_CiudadDeMex", "InjuveCDMX"]',
             "twitter_accounts_prod": '["olaphone", "cucobein", "FreddyTameJr", "CDMXConsejeria", "ContraloriaCDMX", "FiscaliaCDMX", "ClaraBrugadaM", "Finanzas_CDMX", "SEBIEN_cdmx", "CulturaCiudadMx", "SedecoCDMX", "Vivienda_CDMX", "SECTEI_CDMX", "sgirpc_cdmx", "GobCDMX", "semujerescdmx", "SEDEMA_CDMX", "LaSEMOVI", "SOBSECDMX", "metropoliscdmx", "sepicdmx", "SSaludCdMx", "SSC_CDMX", "TrabajoCDMX", "turismocdmx", "C5_CDMX", "MetrobusCDMX", "Bomberos_CDMX", "SEGIAGUA", "UCS_GCDMX", "LaAgenciaCDMX", "DGRCivilCDMX", "DiversidadCDMX", "locatel_mx", "SCPPyBG", "SAPCI_CDMX", "icat_cdmx", "CedaGeneral", "PDI_FGJCDMX", "CFilmaCDMX", "MetroCDMX", "STECDMX", "micablebuscdmx", "RTP_CiudadDeMex", "InjuveCDMX"]',
-        } 
+        }

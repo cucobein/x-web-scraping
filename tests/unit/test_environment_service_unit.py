@@ -15,7 +15,7 @@ class TestEnvironmentService:
         # Clear environment variable
         if "ENVIRONMENT" in os.environ:
             del os.environ["ENVIRONMENT"]
-        
+
         env_service = EnvironmentService()
         assert env_service.get_environment() == "dev"
 
@@ -44,14 +44,14 @@ class TestEnvironmentService:
         env_service = EnvironmentService()
         env_method = env_service.get_environment()
         env_property = env_service.environment
-        
+
         assert env_method == env_property
 
     def test_with_dev_environment(self):
         """Test with dev environment set"""
         os.environ["ENVIRONMENT"] = "dev"
         env_service = EnvironmentService()
-        
+
         assert env_service.get_environment() == "dev"
         assert env_service.is_development() is True
         assert env_service.is_production() is False
@@ -60,7 +60,7 @@ class TestEnvironmentService:
         """Test with prod environment set"""
         os.environ["ENVIRONMENT"] = "prod"
         env_service = EnvironmentService()
-        
+
         assert env_service.get_environment() == "prod"
         assert env_service.is_production() is True
         assert env_service.is_development() is False
@@ -69,5 +69,5 @@ class TestEnvironmentService:
         """Test that multiple instances return the same environment value"""
         env_service1 = EnvironmentService()
         env_service2 = EnvironmentService()
-        
-        assert env_service1.get_environment() == env_service2.get_environment() 
+
+        assert env_service1.get_environment() == env_service2.get_environment()

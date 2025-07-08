@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.services.twitter_scraper import TwitterScraper
 from src.services.logger_service import LoggerService
+from src.services.twitter_scraper import TwitterScraper
 
 
 class TestTwitterScraper:

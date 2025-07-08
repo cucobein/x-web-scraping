@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 import pytest
 
 from src.services.browser_manager import BrowserManager
-from src.services.rate_limiter_service import RateLimiterService
 from src.services.logger_service import LoggerService
+from src.services.rate_limiter_service import RateLimiterService
 
 
 class TestBrowserManager:
@@ -20,11 +20,7 @@ class TestBrowserManager:
         """Create browser manager instance"""
         rate_limiter = RateLimiterService()
         logger = LoggerService()  # Simple logger for tests
-        return BrowserManager(
-            rate_limiter=rate_limiter,
-            logger=logger,
-            headless=True
-        )
+        return BrowserManager(rate_limiter=rate_limiter, logger=logger, headless=True)
 
     @pytest.fixture
     def mock_cookie_data(self):
@@ -270,8 +266,7 @@ class TestBrowserManager:
         custom_rate_limiter = RateLimiterService()
         logger = LoggerService()  # Simple logger for tests
         browser_manager = BrowserManager(
-            rate_limiter=custom_rate_limiter,
-            logger=logger
+            rate_limiter=custom_rate_limiter, logger=logger
         )
 
         assert browser_manager.rate_limiter is custom_rate_limiter
@@ -280,19 +275,15 @@ class TestBrowserManager:
         """Test headless mode configuration"""
         rate_limiter = RateLimiterService()
         logger = LoggerService()  # Simple logger for tests
-        
+
         # Test headless mode
         headless_manager = BrowserManager(
-            rate_limiter=rate_limiter,
-            logger=logger,
-            headless=True
+            rate_limiter=rate_limiter, logger=logger, headless=True
         )
         assert headless_manager.headless is True
 
         # Test non-headless mode
         non_headless_manager = BrowserManager(
-            rate_limiter=rate_limiter,
-            logger=logger,
-            headless=False
+            rate_limiter=rate_limiter, logger=logger, headless=False
         )
         assert non_headless_manager.headless is False

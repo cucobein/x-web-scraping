@@ -13,7 +13,13 @@ from src.services.logger_service import LoggerService
 class TelegramNotificationService:
     """Handles sending notifications to Telegram endpoint"""
 
-    def __init__(self, endpoint: str, api_key: str, http_client: HttpClientService, logger: Optional[LoggerService] = None):
+    def __init__(
+        self,
+        endpoint: str,
+        api_key: str,
+        http_client: HttpClientService,
+        logger: Optional[LoggerService] = None,
+    ):
         """
         Initialize Telegram notification service
 

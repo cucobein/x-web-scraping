@@ -44,7 +44,9 @@ class TestConfigManagerIntegration:
         """Test Firebase config loading using captured fixture"""
         logger = LoggerService()  # Simple logger for tests
         # Create config manager with fixture enabled
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
+        config_manager = ConfigManager(
+            mode=ConfigMode.FIXTURE, environment="dev", logger=logger
+        )
 
         # Verify config contains Firebase data by checking properties
         assert config_manager.check_interval == 30
@@ -54,7 +56,9 @@ class TestConfigManagerIntegration:
     def test_firebase_config_properties_dev_environment(self, firebase_config_fixture):
         """Test Firebase config properties in dev environment"""
         logger = LoggerService()  # Simple logger for tests
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
+        config_manager = ConfigManager(
+            mode=ConfigMode.FIXTURE, environment="dev", logger=logger
+        )
 
         # Test properties
         assert config_manager.check_interval == 30  # monitoring_check_interval_dev
@@ -77,7 +81,9 @@ class TestConfigManagerIntegration:
     def test_firebase_config_properties_prod_environment(self, firebase_config_fixture):
         """Test Firebase config properties in prod environment"""
         logger = LoggerService()  # Simple logger for tests
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="prod", logger=logger)
+        config_manager = ConfigManager(
+            mode=ConfigMode.FIXTURE, environment="prod", logger=logger
+        )
 
         # Test properties
         assert config_manager.check_interval == 60  # monitoring_check_interval_prod
@@ -152,7 +158,9 @@ class TestConfigManagerIntegration:
     def test_firebase_manager_initialization(self, firebase_config_fixture):
         """Test Firebase manager initialization and caching"""
         logger = LoggerService()  # Simple logger for tests
-        config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
+        config_manager = ConfigManager(
+            mode=ConfigMode.FIXTURE, environment="dev", logger=logger
+        )
 
         # Config should be loaded and cached
         assert config_manager.check_interval == 30

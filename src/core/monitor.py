@@ -9,8 +9,8 @@ from src.repositories.tweet_repository import TweetRepository
 from src.services.browser_manager import BrowserManager
 from src.services.logger_service import LoggerService
 from src.services.notification_service import NotificationService
-from src.services.twitter_scraper import TwitterScraper
 from src.services.service_provider import ServiceProvider
+from src.services.twitter_scraper import TwitterScraper
 
 
 class XMonitor:
@@ -19,15 +19,16 @@ class XMonitor:
     def __init__(self, provider: ServiceProvider = None):
         """
         Initialize XMonitor with services from provider
-        
+
         Args:
             provider: ServiceProvider instance. If None, uses the global provider.
         """
         # Get services from provider
         if provider is None:
             from src.services import get_service_provider
+
             provider = get_service_provider()
-        
+
         self.logger = provider.get(LoggerService)
         self.config_manager = provider.get(ConfigManager)
         self.browser_manager = provider.get(BrowserManager)
@@ -120,8 +121,6 @@ class XMonitor:
 
         for username in accounts:
             await self.process_account(username)
-
-
 
     async def start(self):
         """Start the monitoring service"""
