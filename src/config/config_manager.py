@@ -4,6 +4,7 @@ Configuration management for X Feed Monitor with Firebase Remote Config support
 
 import asyncio
 import json
+import os
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -37,10 +38,8 @@ class ConfigManager:
         self.logger = logger or LoggerService()
 
         # Firebase configuration
-        self.project_id = "web-scraper-e14ff"
-        self.service_account_path = (
-            "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json"
-        )
+        self.project_id = os.getenv("FIREBASE_PROJECT_ID", "web-scraper-e14ff")
+        self.service_account_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json")
 
         # Load configuration immediately
         self._load()
