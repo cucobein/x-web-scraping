@@ -19,7 +19,8 @@ class TestTwitterScraperIntegration:
     @pytest.fixture
     def scraper(self):
         """Create scraper instance"""
-        return TwitterScraper(page_timeout=5000)
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        return TwitterScraper(page_timeout=5000, logger=logger)
 
     @pytest_asyncio.fixture
     async def browser_manager(self):

@@ -24,7 +24,7 @@ class TwitterScraper:
             logger: Optional logger service
         """
         self.page_timeout = page_timeout
-        self.logger = logger or LoggerService()
+        self.logger = logger
 
     async def get_latest_tweet(
         self, page: Page, username: str, browser_manager=None
