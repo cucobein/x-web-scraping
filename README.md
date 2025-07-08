@@ -533,10 +533,39 @@ The application features a comprehensive, production-ready logging system with a
 - **File Output**: All logs are written to `logs/app.log` with automatic rotation
 - **Context Support**: Structured context data is logged as pretty-printed JSON
 - **Exception Logging**: Full stack traces for errors and exceptions
-- **No External Dependencies**: All logging is local and free
 - **Centralized Management**: Singleton pattern ensures consistent logging across the application
+- **Remote Logging**: Firebase integration for cloud-based log storage and monitoring
 
 ### Advanced Features
+
+#### Firebase Remote Logging
+The application supports remote logging to Firebase for centralized log management:
+
+**What Gets Logged:**
+- **Individual log entries** → Cloud Firestore (database)
+- **Complete log files** → Firebase Storage (file storage)
+
+**Setup Requirements:**
+1. **Enable Cloud Firestore** in Firebase Console
+2. **Enable Firebase Storage** in Firebase Console
+3. **Set up security rules** for both services
+4. **Generate service account key** and save as JSON file
+5. **Set environment variables**:
+   ```bash
+   FIREBASE_PROJECT_ID=your-project-id
+   FIREBASE_SERVICE_ACCOUNT_PATH=config/your-service-account.json
+   ```
+
+**Automatic Behavior:**
+- **Enabled by default** when Firebase config is available
+- **Auto-disabled** when environment variables are missing
+- **Graceful fallback** to local-only logging if Firebase fails
+- **Test-friendly** with `disabled=True` parameter for unit tests
+
+**Monitoring Integration:**
+- Log files are automatically uploaded after each monitoring cycle
+- Individual log entries are sent to Firestore in real-time
+- All logs include environment, timestamp, and structured context
 
 #### JSON Output for Log Aggregation
 Enable JSON output for machine parsing and log aggregation systems:
@@ -630,6 +659,9 @@ ValueError: Test error for logging
   # JSON output for log aggregation
   logger.set_json_output(True)
   logger.info("Structured log", {"metric": "value"})
+  
+  # Disable Firebase logging for tests
+  logger = LoggerService(firebase_disabled=True)
   ```
 
 ### Configuration
@@ -639,6 +671,7 @@ logger = LoggerService(
     log_file_path="logs/custom.log",
     max_file_size_mb=50,      # 50MB before rotation
     backup_count=10,          # Keep 10 backup files
-    json_output=False         # Human-readable format
+    json_output=False,        # Human-readable format
+    firebase_disabled=False   # Enable/disable Firebase logging
 )
 ```

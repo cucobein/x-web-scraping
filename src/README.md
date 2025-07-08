@@ -128,6 +128,7 @@ telegram_enabled = config.telegram_enabled
 - `http_client.py`: Reusable HTTP client for external APIs
 - `rate_limiter.py`: Domain-specific rate limiting with intelligent backoff strategies
 - `logger_service.py`: Robust, centralized logging system for all core services and modules
+- `firebase_log_service.py`: Firebase integration for remote log storage and monitoring
 
 **Responsibilities:**
 - Manage external dependencies (browser, APIs)
@@ -140,6 +141,7 @@ telegram_enabled = config.telegram_enabled
 - Manage request timing and delays
 - Implement conditional browser configurations for headless vs non-headless modes
 - Implement a robust, centralized logging system for all core services and modules
+- Provide remote logging capabilities via Firebase Firestore and Storage
 
 ### **Repository Layer** (`repositories/`)
 **Purpose**: Data persistence and state management
@@ -180,6 +182,50 @@ Models ← Core ← Services ← Repositories
 3. **Services** handle external interactions
 4. **Repositories** persist state and data
 5. **Models** ensure data integrity throughout
+
+## 🔥 Firebase Logging Service
+
+The `FirebaseLogService` provides remote logging capabilities for centralized log management and monitoring.
+
+### **Features**
+- **Dual Storage**: Individual logs to Cloud Firestore, complete files to Firebase Storage
+- **Environment-Aware**: Logs include environment (dev/prod) and structured context
+- **Auto-Discovery**: Automatically enables/disables based on environment variables
+- **Test-Friendly**: Can be disabled for unit tests with `disabled=True` parameter
+- **Graceful Degradation**: Falls back to local-only logging if Firebase is unavailable
+
+### **Configuration**
+```python
+# Environment variables required for Firebase logging
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_SERVICE_ACCOUNT_PATH=config/service-account.json
+
+# Disable for tests
+firebase_logger = FirebaseLogService(disabled=True)
+
+# Enable with logger integration
+firebase_logger = FirebaseLogService(logger=logger_service)
+```
+
+### **Usage**
+```python
+from src.services.firebase_log_service import FirebaseLogService
+
+# Individual log entries
+await firebase_logger.log_entry(LogLevel.INFO, "Message", {"context": "value"})
+
+# Upload complete log file
+await firebase_logger.upload_log_file("logs/app.log")
+
+# Clean up old logs
+await firebase_logger.cleanup_old_logs(days_to_keep=30)
+```
+
+### **Integration with LoggerService**
+The `LoggerService` automatically integrates with `FirebaseLogService`:
+- All log calls are sent to Firebase (when enabled)
+- Log files are uploaded after each monitoring cycle
+- Firebase failures don't break local logging
 
 ## 🎯 Design Principles
 
