@@ -34,6 +34,7 @@ class NotificationService:
             self.telegram_service = TelegramNotificationService(
                 endpoint=self.config_manager.telegram_endpoint,
                 api_key=self.config_manager.telegram_api_key,
+                logger=self.logger,
             )
 
     async def notify_new_tweet(self, tweet: Tweet):

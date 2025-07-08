@@ -102,7 +102,7 @@ class TestTelegramNotificationService:
 
         assert result.success is False
         assert result.status_code == 0  # Error status code
-        assert "RetryError" in (result.error or "")
+        assert "HTTP 401" in (result.error or "")  # Should contain the final error
         assert mock_post.call_count == 3
 
     @pytest.mark.asyncio
@@ -171,8 +171,6 @@ class TestTelegramNotificationService:
     @pytest.mark.asyncio
     async def test_send_telegram_request_http_error(self, telegram_service):
         """Test _send_telegram_request method with HTTP error"""
-        import tenacity
-
         from src.models.telegram_message import TelegramMessageRequest
 
         request = TelegramMessageRequest(
@@ -187,8 +185,7 @@ class TestTelegramNotificationService:
             "post_form_data",
             new=AsyncMock(return_value=mock_response),
         ):
-            with pytest.raises(tenacity.RetryError) as exc_info:
+            with pytest.raises(Exception) as exc_info:
                 await telegram_service._send_telegram_request(request, headers)
-            # Check that the original error message is in the cause/original exception
-            original_exc = exc_info.value.last_attempt.exception()
-            assert "HTTP 500" in str(original_exc)
+            # Check that the error message contains the HTTP error
+            assert "HTTP 500" in str(exc_info.value)
