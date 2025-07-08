@@ -2,6 +2,7 @@
 Robust logging service with console and file output
 """
 
+import asyncio
 import json
 import os
 import traceback
@@ -9,6 +10,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
+from queue import Queue
+from threading import Lock
 
 from src.utils.env_helper import get_environment
 
@@ -56,6 +59,11 @@ class LoggerService:
         self.log_file_path = log_file_path
         self.max_file_size_mb = max_file_size_mb
         self.backup_count = backup_count
+
+        # Async logging setup
+        self._async_queue = Queue()
+        self._queue_lock = Lock()
+        self._async_worker_running = False
 
         # Ensure log directory exists
         self._ensure_log_directory()
@@ -110,6 +118,47 @@ class LoggerService:
     def _get_timestamp(self) -> str:
         """Get current timestamp for logging"""
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def _start_async_worker(self):
+        """Start the async worker if not already running"""
+        with self._queue_lock:
+            if not self._async_worker_running:
+                self._async_worker_running = True
+                # Start worker in a separate thread to avoid blocking
+                import threading
+                worker_thread = threading.Thread(target=self._async_worker_loop, daemon=True)
+                worker_thread.start()
+
+    def _async_worker_loop(self):
+        """Background worker loop to process async log messages"""
+        while self._async_worker_running:
+            try:
+                # Get log entry from queue with timeout
+                log_entry = self._async_queue.get(timeout=1.0)
+                if log_entry is None:  # Shutdown signal
+                    break
+                
+                # Process the log entry
+                level, message, context = log_entry
+                self._log_to_console(level, message, context)
+                self._log_to_file(level, message, context)
+                
+                self._async_queue.task_done()
+            except Exception as e:
+                # Don't let worker failures break the app
+                print(f"⚠️ Async logger worker error: {e}")
+                continue
+
+    def _queue_log_entry(self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None):
+        """Queue a log entry for async processing"""
+        try:
+            self._start_async_worker()
+            self._async_queue.put((level, message, context))
+        except Exception as e:
+            # Fallback to sync logging if queue fails
+            print(f"⚠️ Failed to queue log entry, falling back to sync: {e}")
+            self._log_to_console(level, message, context)
+            self._log_to_file(level, message, context)
 
     def _format_message(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
@@ -200,6 +249,40 @@ class LoggerService:
         """Log critical message"""
         self.log(LogLevel.CRITICAL, message, context)
 
+    # Async logging methods
+    def log_async(
+        self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
+    ):
+        """
+        Log message asynchronously with specified level
+
+        Args:
+            level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            message: Log message
+            context: Additional context data
+        """
+        self._queue_log_entry(level, message, context)
+
+    def debug_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """Log debug message asynchronously"""
+        self.log_async(LogLevel.DEBUG, message, context)
+
+    def info_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """Log info message asynchronously"""
+        self.log_async(LogLevel.INFO, message, context)
+
+    def warning_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """Log warning message asynchronously"""
+        self.log_async(LogLevel.WARNING, message, context)
+
+    def error_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """Log error message asynchronously"""
+        self.log_async(LogLevel.ERROR, message, context)
+
+    def critical_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+        """Log critical message asynchronously"""
+        self.log_async(LogLevel.CRITICAL, message, context)
+
     def log_exception(
         self,
         message: str,
@@ -244,3 +327,17 @@ class LoggerService:
                 f.write(file_msg + "\n")
         except Exception as e:
             print(f"⚠️ Failed to write to log file: {e}")
+
+    def log_exception_async(
+        self,
+        message: str,
+        exception: Exception,
+        context: Optional[Dict[str, Any]] = None,
+    ):
+        """Log exception asynchronously with stack trace"""
+        # Queue the exception logging for async processing
+        self._queue_log_entry(LogLevel.ERROR, message, context)
+        
+        # Also queue the exception details
+        exception_msg = f"Exception: {type(exception).__name__}: {str(exception)}"
+        self._queue_log_entry(LogLevel.ERROR, exception_msg, context)
