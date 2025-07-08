@@ -10,11 +10,13 @@ import pytest_asyncio
 
 from src.core.monitor import XMonitor
 from src.models.tweet import Tweet
+from src.repositories.tweet_repository import TweetRepository
 from src.services.browser_manager import BrowserManager
 from src.services.notification_service import NotificationService
 from src.services.telegram_notification_service import TelegramNotificationService
 from src.services.rate_limiter_service import RateLimiterService
 from src.services.logger_service import LoggerService
+from src.services.twitter_scraper import TwitterScraper
 
 
 class TestMonitorIntegration:
@@ -23,26 +25,56 @@ class TestMonitorIntegration:
     @pytest.fixture
     def monitor(self):
         """Create monitor instance with test config"""
-        monitor = XMonitor()
-        # Override config manager to use FIXTURE mode for integration tests
+        from src.services.service_provider import ServiceProvider
         from src.config.config_manager import ConfigManager, ConfigMode
-
-        monitor.config_manager = ConfigManager(
-            ConfigMode.FIXTURE, environment=None, logger=monitor.logger
-        )
         
-        # Fix: Override notification_service with proper dependencies
+        # Create a test provider with custom services
+        provider = ServiceProvider()
+        
+        # Create test logger
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        provider.register_singleton(LoggerService, lambda: logger)
+        
+        # Create test config manager
+        config_manager = ConfigManager(ConfigMode.FIXTURE, environment=None, logger=logger)
+        provider.register_singleton(ConfigManager, lambda: config_manager)
+        
+        # Create test browser manager
+        rate_limiter = RateLimiterService()
+        browser_manager = BrowserManager(
+            rate_limiter=rate_limiter,
+            logger=logger,
+            headless=True
+        )
+        provider.register_singleton(BrowserManager, lambda: browser_manager)
+        
+        # Create test twitter scraper
+        twitter_scraper = TwitterScraper(
+            page_timeout=config_manager.page_timeout,
+            logger=logger
+        )
+        provider.register_singleton(TwitterScraper, lambda: twitter_scraper)
+        
+        # Create test notification service
         telegram_service = TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",
             api_key="47827973-e134-4ec1-9b11-458d3cc72962",
-            logger=monitor.logger
+            logger=logger
         )
         
-        monitor.notification_service = NotificationService(
-            config_manager=monitor.config_manager,
-            logger=monitor.logger,
+        notification_service = NotificationService(
+            config_manager=config_manager,
+            logger=logger,
             telegram_service=telegram_service
         )
+        provider.register_singleton(NotificationService, lambda: notification_service)
+        
+        # Create test tweet repository
+        tweet_repository = TweetRepository()
+        provider.register_singleton(TweetRepository, lambda: tweet_repository)
+        
+        # Create monitor with test provider
+        monitor = XMonitor(provider=provider)
         
         return monitor
 

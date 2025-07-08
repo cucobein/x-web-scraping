@@ -10,29 +10,30 @@ from src.services.browser_manager import BrowserManager
 from src.services.logger_service import LoggerService
 from src.services.notification_service import NotificationService
 from src.services.twitter_scraper import TwitterScraper
+from src.services.service_provider import ServiceProvider
 
 
 class XMonitor:
     """Main monitor that orchestrates all services"""
 
-    def __init__(self):
-        # Get the centralized logger instance
-        self.logger = LoggerService()
-
-        # Initialize all services with the shared logger
-        self.config_manager = ConfigManager(
-            ConfigMode.FIREBASE, environment=None, logger=self.logger
-        )
-        self.browser_manager = BrowserManager(
-            self.config_manager.headless, logger=self.logger
-        )
-        self.twitter_scraper = TwitterScraper(
-            page_timeout=self.config_manager.page_timeout, logger=self.logger
-        )
-        self.notification_service = NotificationService(
-            self.config_manager, logger=self.logger
-        )
-        self.tweet_repository = TweetRepository()
+    def __init__(self, provider: ServiceProvider = None):
+        """
+        Initialize XMonitor with services from provider
+        
+        Args:
+            provider: ServiceProvider instance. If None, uses the global provider.
+        """
+        # Get services from provider
+        if provider is None:
+            from src.services import get_service_provider
+            provider = get_service_provider()
+        
+        self.logger = provider.get(LoggerService)
+        self.config_manager = provider.get(ConfigManager)
+        self.browser_manager = provider.get(BrowserManager)
+        self.twitter_scraper = provider.get(TwitterScraper)
+        self.notification_service = provider.get(NotificationService)
+        self.tweet_repository = provider.get(TweetRepository)
 
         # Internal state
         self.is_running = False

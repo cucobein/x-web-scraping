@@ -15,31 +15,21 @@ from src.services.service_registration import setup_services
 nest_asyncio.apply()
 
 
-def setup_logging():
-    """Configure centralized logging for the application"""
-    # Setup services (this registers EnvironmentService and LoggerService)
+async def main():
+    """Main application entry point"""
+    # Setup centralized logging and get provider
     provider = setup_services()
-    
-    # Get services from provider
-    env_service = provider.get(EnvironmentService)
     logger = provider.get(LoggerService)
     
+    # Log application startup
+    env_service = provider.get(EnvironmentService)
     environment = env_service.get_environment()
-
     logger.info(
         "Application starting", {"environment": environment, "log_file": "logs/app.log"}
     )
 
-    return logger
-
-
-async def main():
-    """Main application entry point"""
-    # Setup centralized logging
-    logger = setup_logging()
-
     try:
-        monitor = XMonitor()
+        monitor = XMonitor(provider=provider)
         await monitor.start()
     except Exception as e:
         logger.log_exception("Application failed to start", e)
