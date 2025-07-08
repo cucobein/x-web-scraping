@@ -356,22 +356,90 @@ else:
 
 ## 📝 Logging System
 
-The codebase uses a robust, centralized logging system for all core services and modules:
+The codebase uses a comprehensive, production-ready logging system with advanced capabilities for all core services and modules:
 
+### Core Features
 - **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
 - **Console Output**: Color-coded, multi-line, and context-rich for easy reading
 - **File Output**: All logs are written to `logs/app.log` with automatic rotation
 - **Context Support**: Structured context data is logged as pretty-printed JSON
 - **Exception Logging**: Full stack traces for errors and exceptions
+- **Centralized Management**: Singleton pattern ensures consistent logging across the application
 - **Integration**: All services accept an optional `logger` parameter; if not provided, a default logger is used
+
+### Advanced Features
+
+#### JSON Output for Log Aggregation
+Enable structured JSON output for machine parsing and log aggregation systems:
+```python
+from src.services.logger_service import LoggerService
+
+# Enable JSON output
+logger = LoggerService(json_output=True)
+logger.set_json_output(True)  # Runtime toggle
+
+# JSON log format
+{
+  "timestamp": "2024-06-07T15:30:45.123456",
+  "level": "INFO", 
+  "environment": "DEV",
+  "message": "Operation completed",
+  "context": {"operation": "data_processing", "duration_seconds": 1.234}
+}
+```
+
+#### Performance/Timing Logging
+Built-in timing support for performance monitoring and optimization:
+```python
+# Context manager for timing code blocks
+with logger.timing("database_query"):
+    result = database.execute_query()
+
+# Decorator for timing functions (sync and async)
+@logger.timeit("api_call")
+def call_external_api():
+    return requests.get("https://api.example.com")
+
+@logger.timeit("async_operation")
+async def async_function():
+    await asyncio.sleep(1)
+```
+
+#### Runtime Log Rotation with Timestamped Backups
+- **Automatic Rotation**: Log files are rotated when they exceed the size limit
+- **Timestamped Backups**: Backup files use format `app.log.YYYYMMDD_HHMMSS.log`
+- **Configurable**: Set `max_file_size_mb` and `backup_count` during initialization
+- **Thread-Safe**: Rotation works correctly with async logging
+
+#### Async Logging Support
+Non-blocking logging for high-performance applications:
+```python
+# Async logging methods
+logger.info_async("Message", {"context": "value"})
+logger.error_async("Error occurred", {"error": str(e)})
+logger.log_exception_async("Exception", exception, {"context": "value"})
+```
 
 ### LoggerService Usage
 
 ```python
 from src.services.logger_service import LoggerService
-logger = LoggerService()
+
+# Get the singleton instance
+logger = LoggerService.get_instance()
+
+# Basic logging
 logger.info("Something happened", {"context": "value"})
 logger.error("Something failed", {"error": str(e)})
+
+# Performance logging
+with logger.timing("operation_name"):
+    # Your code here
+    pass
+
+# JSON output for log aggregation
+logger.set_json_output(True)
+logger.info("Structured log", {"metric": "value"})
 ```
 
 ### Service Integration Example
@@ -380,8 +448,19 @@ logger.error("Something failed", {"error": str(e)})
 from src.services.browser_manager import BrowserManager
 from src.services.logger_service import LoggerService
 
-logger = LoggerService()
+logger = LoggerService.get_instance()
 browser_manager = BrowserManager(headless=True, logger=logger)
+```
+
+### Configuration
+```python
+# Custom logger configuration
+logger = LoggerService(
+    log_file_path="logs/custom.log",
+    max_file_size_mb=50,      # 50MB before rotation
+    backup_count=10,          # Keep 10 backup files
+    json_output=False         # Human-readable format
+)
 ```
 
 All log files are stored in `logs/` (ignored by git). The logging system is robust, extensible, and easy to use throughout the codebase.

@@ -525,14 +525,70 @@ This approach eliminates duplicate processing within cycles and lets the sophist
 
 ## 📝 Logging System
 
-The application features a robust logging system for both development and production use:
+The application features a comprehensive, production-ready logging system with advanced capabilities for both development and production use:
 
+### Core Features
 - **Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
 - **Console Output**: Color-coded and multi-line for readability
-- **File Output**: All logs are written to `logs/app.log` (with automatic rotation, not committed to git)
+- **File Output**: All logs are written to `logs/app.log` with automatic rotation
 - **Context Support**: Structured context data is logged as pretty-printed JSON
 - **Exception Logging**: Full stack traces for errors and exceptions
 - **No External Dependencies**: All logging is local and free
+- **Centralized Management**: Singleton pattern ensures consistent logging across the application
+
+### Advanced Features
+
+#### JSON Output for Log Aggregation
+Enable JSON output for machine parsing and log aggregation systems:
+```python
+from src.services.logger_service import LoggerService
+
+# Enable JSON output
+logger = LoggerService(json_output=True)
+logger.set_json_output(True)  # Runtime toggle
+
+# JSON log format
+{
+  "timestamp": "2024-06-07T15:30:45.123456",
+  "level": "INFO",
+  "environment": "DEV",
+  "message": "Operation completed",
+  "context": {"operation": "data_processing", "duration_seconds": 1.234}
+}
+```
+
+#### Performance/Timing Logging
+Built-in timing support for performance monitoring:
+```python
+# Context manager for timing code blocks
+with logger.timing("database_query"):
+    result = database.execute_query()
+
+# Decorator for timing functions
+@logger.timeit("api_call")
+def call_external_api():
+    return requests.get("https://api.example.com")
+
+# Async function timing
+@logger.timeit("async_operation")
+async def async_function():
+    await asyncio.sleep(1)
+```
+
+#### Runtime Log Rotation with Timestamped Backups
+- **Automatic Rotation**: Log files are rotated when they exceed the size limit
+- **Timestamped Backups**: Backup files use format `app.log.YYYYMMDD_HHMMSS.log`
+- **Configurable**: Set `max_file_size_mb` and `backup_count` during initialization
+- **Thread-Safe**: Rotation works correctly with async logging
+
+#### Async Logging Support
+Non-blocking logging for high-performance applications:
+```python
+# Async logging methods
+logger.info_async("Message", {"context": "value"})
+logger.error_async("Error occurred", {"error": str(e)})
+logger.log_exception_async("Exception", exception, {"context": "value"})
+```
 
 ### Example Log Output
 ```
@@ -550,6 +606,7 @@ ValueError: Test error for logging
 
 ### Log File Location
 - All logs are stored in `logs/app.log` (rotated automatically)
+- Backup files: `logs/app.log.20240607_153045.log`, `logs/app.log.20240607_153100.log`, etc.
 - The `logs/` directory is ignored by git and will not be committed
 
 ### How to Use
@@ -557,6 +614,31 @@ ValueError: Test error for logging
 - For custom logging, use the `LoggerService` class:
   ```python
   from src.services.logger_service import LoggerService
-  logger = LoggerService()
+  
+  # Get the singleton instance
+  logger = LoggerService.get_instance()
+  
+  # Basic logging
   logger.info("Something happened", {"context": "value"})
+  logger.error("Error occurred", {"error": str(e)})
+  
+  # Performance logging
+  with logger.timing("operation_name"):
+      # Your code here
+      pass
+  
+  # JSON output for log aggregation
+  logger.set_json_output(True)
+  logger.info("Structured log", {"metric": "value"})
   ```
+
+### Configuration
+```python
+# Custom logger configuration
+logger = LoggerService(
+    log_file_path="logs/custom.log",
+    max_file_size_mb=50,      # 50MB before rotation
+    backup_count=10,          # Keep 10 backup files
+    json_output=False         # Human-readable format
+)
+```

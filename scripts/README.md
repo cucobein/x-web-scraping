@@ -58,6 +58,8 @@ This directory is ready for additional utilities:
 - **Performance benchmarking**
 - **Deployment automation**
 - **Monitoring setup scripts**
+- **Log analysis tools** (leveraging the new JSON logging format)
+- **Performance profiling scripts** (using the new timing logging features)
 
 ## 📋 Script Requirements
 

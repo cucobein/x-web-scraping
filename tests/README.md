@@ -155,6 +155,7 @@ The `ConfigMode.FALLBACK` mode tests fallback scenarios:
 - **`test_pool_manager_unit.py`**: PoolManager context pooling logic (fully mocked, no real browser)
 - **`test_context_pool_unit.py`**: ContextPool per-domain pooling logic (fully mocked)
 - **`test_browser_manager_unit.py`**: BrowserManager integration with PoolManager, context pooling, and backward compatibility (all browser logic mocked)
+- **`test_logger_service_unit.py`**: Comprehensive logging system testing including JSON output, async logging, performance timing, and log rotation with timestamped backups
 
 ### Integration Tests (`tests/integration/`)
 **Purpose:** Test component interactions using real HTML fixtures
@@ -395,6 +396,12 @@ tests/
 - **Speed**: Medium (uses real data)
 - **Coverage**: End-to-end workflows
 
+#### **Logging Tests** (`tests/unit/test_logger_service_unit.py`)
+- **Purpose**: Test comprehensive logging system functionality
+- **Dependencies**: Mocked file system and datetime
+- **Speed**: Very fast (uses temp files and mocks)
+- **Coverage**: JSON output, async logging, performance timing, log rotation with timestamped backups
+
 ## 📊 Test Coverage
 
 ### **Tweet Model Tests** (13 tests)
@@ -418,6 +425,17 @@ tests/
 - ✅ Multi-user tracking
 - ✅ State management
 - ✅ Data clearing operations
+
+### **Logger Service Tests** (22 tests)
+- ✅ Singleton pattern and instance management
+- ✅ Sync and async logging methods
+- ✅ Context support with structured data
+- ✅ Exception logging with stack traces
+- ✅ JSON output format for log aggregation
+- ✅ Performance timing (context manager and decorator)
+- ✅ Runtime log rotation with timestamped backups
+- ✅ Async worker and queue management
+- ✅ Error handling and fallback mechanisms
 
 ## 🎯 Running Tests
 
