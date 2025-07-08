@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.services.rate_limiter import RateLimitConfig, RateLimiter
+from src.services.rate_limiter_service import RateLimitConfig, RateLimiterService
 
 
 class TestRateLimitConfig:
@@ -45,7 +45,7 @@ class TestRateLimiter:
     @pytest.fixture
     def rate_limiter(self):
         """Create rate limiter instance"""
-        return RateLimiter()
+        return RateLimiterService()
 
     @pytest.fixture
     def fast_rate_limiter(self):
@@ -53,7 +53,7 @@ class TestRateLimiter:
         config = RateLimitConfig(
             requests_per_minute=5, min_delay_seconds=0.1, max_delay_seconds=0.2
         )
-        rate_limiter = RateLimiter(config)
+        rate_limiter = RateLimiterService(config)
         # Override domain configs for testing to use the fast config
         rate_limiter.domain_configs["x.com"] = config
         rate_limiter.domain_configs["twitter.com"] = config

@@ -13,6 +13,8 @@ from src.models.tweet import Tweet
 from src.services.browser_manager import BrowserManager
 from src.services.notification_service import NotificationService
 from src.services.telegram_notification_service import TelegramNotificationService
+from src.services.rate_limiter_service import RateLimiterService
+from src.services.logger_service import LoggerService
 
 
 class TestMonitorIntegration:
@@ -47,7 +49,13 @@ class TestMonitorIntegration:
     @pytest_asyncio.fixture
     async def browser_manager(self):
         """Create and start browser manager for testing"""
-        manager = BrowserManager(headless=True)
+        rate_limiter = RateLimiterService()
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        manager = BrowserManager(
+            rate_limiter=rate_limiter,
+            logger=logger,
+            headless=True
+        )
         await manager.start()
         yield manager
         await manager.stop()

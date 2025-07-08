@@ -8,7 +8,8 @@ from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 import pytest
 
 from src.services.browser_manager import BrowserManager
-from src.services.rate_limiter import RateLimiter
+from src.services.rate_limiter_service import RateLimiterService
+from src.services.logger_service import LoggerService
 
 
 class TestBrowserManager:
@@ -17,7 +18,13 @@ class TestBrowserManager:
     @pytest.fixture
     def browser_manager(self):
         """Create browser manager instance"""
-        return BrowserManager(headless=True)
+        rate_limiter = RateLimiterService()
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        return BrowserManager(
+            rate_limiter=rate_limiter,
+            logger=logger,
+            headless=True
+        )
 
     @pytest.fixture
     def mock_cookie_data(self):
@@ -49,7 +56,7 @@ class TestBrowserManager:
         assert browser_manager.browser is None
         assert browser_manager.context is None
         assert browser_manager.playwright is None
-        assert isinstance(browser_manager.rate_limiter, RateLimiter)
+        assert isinstance(browser_manager.rate_limiter, RateLimiterService)
         assert isinstance(browser_manager.domain_cookies, dict)
 
     def test_load_domain_cookies_structure(self, browser_manager):
@@ -260,17 +267,32 @@ class TestBrowserManager:
 
     def test_custom_rate_limiter_injection(self):
         """Test that custom rate limiter can be injected"""
-        custom_rate_limiter = RateLimiter()
-        browser_manager = BrowserManager(rate_limiter=custom_rate_limiter)
+        custom_rate_limiter = RateLimiterService()
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        browser_manager = BrowserManager(
+            rate_limiter=custom_rate_limiter,
+            logger=logger
+        )
 
         assert browser_manager.rate_limiter is custom_rate_limiter
 
     def test_headless_mode_configuration(self):
         """Test headless mode configuration"""
+        rate_limiter = RateLimiterService()
+        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        
         # Test headless mode
-        headless_manager = BrowserManager(headless=True)
+        headless_manager = BrowserManager(
+            rate_limiter=rate_limiter,
+            logger=logger,
+            headless=True
+        )
         assert headless_manager.headless is True
 
         # Test non-headless mode
-        non_headless_manager = BrowserManager(headless=False)
+        non_headless_manager = BrowserManager(
+            rate_limiter=rate_limiter,
+            logger=logger,
+            headless=False
+        )
         assert non_headless_manager.headless is False

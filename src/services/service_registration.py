@@ -10,7 +10,7 @@ from src.services import get_service_provider
 from src.services.environment_service import EnvironmentService
 from src.services.logger_service import LoggerService
 from src.services.firebase_log_service import FirebaseLogService
-from src.services.rate_limiter import RateLimiter
+from src.services.rate_limiter_service import RateLimiterService
 from src.services.browser_manager import BrowserManager
 from src.repositories.tweet_repository import TweetRepository
 from src.services.notification_service import NotificationService
@@ -53,13 +53,13 @@ def setup_services():
         env_service=provider.get(EnvironmentService)
     ))
     
-    provider.register_singleton(RateLimiter, lambda: RateLimiter())
+    provider.register_singleton(RateLimiterService, lambda: RateLimiterService())
     
     # Business services
     provider.register_singleton(BrowserManager, lambda: BrowserManager(
-        headless=True,
-        rate_limiter=provider.get(RateLimiter),
-        logger=provider.get(LoggerService)
+        rate_limiter=provider.get(RateLimiterService),
+        logger=provider.get(LoggerService),
+        headless=True
     ))
     
     provider.register_singleton(TweetRepository, lambda: TweetRepository())

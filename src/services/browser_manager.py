@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from playwright.async_api import Browser, BrowserContext, async_playwright
 
 from src.services.logger_service import LoggerService
-from src.services.rate_limiter import RateLimiter
+from src.services.rate_limiter_service import RateLimiterService
 
 
 class BrowserManager:
@@ -17,24 +17,24 @@ class BrowserManager:
 
     def __init__(
         self,
+        rate_limiter: RateLimiterService,
+        logger: LoggerService,
         headless: bool = True,
-        rate_limiter: Optional[RateLimiter] = None,
-        logger: Optional[LoggerService] = None,
     ):
         """
         Initialize browser manager
 
         Args:
             headless: Whether to run browser in headless mode
-            rate_limiter: Optional rate limiter for anti-detection
-            logger: Optional logger service
+            rate_limiter: Rate limiter for anti-detection
+            logger: Logger service
         """
         self.headless = headless
         self.browser: Optional[Browser] = None
         self.context: Optional[BrowserContext] = None
         self.playwright = None
-        self.rate_limiter = rate_limiter or RateLimiter()
-        self.logger = logger or LoggerService()
+        self.rate_limiter = rate_limiter
+        self.logger = logger
 
         # Domain-specific cookie configurations
         self.domain_cookies = self._load_domain_cookies()

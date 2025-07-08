@@ -22,7 +22,7 @@ class RateLimitConfig:
     max_delay_seconds: float = 8.0
 
 
-class RateLimiter:
+class RateLimiterService:
     """Handles rate limiting for different domains with anti-detection features"""
 
     def __init__(self, config: Optional[RateLimitConfig] = None):
