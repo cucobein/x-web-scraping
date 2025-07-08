@@ -15,7 +15,7 @@ class TestNotificationService:
     def test_notification_service_initialization_with_telegram_enabled(self):
         """Test notification service initialization with Telegram enabled"""
         # Test with Telegram enabled (use local mode for unit tests)
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_with_telegram = ConfigManager(ConfigMode.LOCAL, logger=logger)
         http_client = HttpClientService(timeout=5)
         telegram_service = TelegramNotificationService(
@@ -42,7 +42,7 @@ class TestNotificationService:
     def test_notification_service_initialization_with_telegram_disabled(self):
         """Test notification service initialization with Telegram disabled"""
         # Test with Telegram disabled
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_without_telegram = ConfigManager(ConfigMode.LOCAL, logger=logger)
         service_without_telegram = NotificationService(
             config_manager=config_without_telegram,
@@ -58,7 +58,7 @@ class TestNotificationService:
             ConfigManager, "telegram_enabled", new_callable=PropertyMock
         ) as mock_enabled:
             mock_enabled.return_value = False
-            logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+            logger = LoggerService()  # Simple logger for tests
             config_disabled = ConfigManager(ConfigMode.LOCAL, logger=logger)
             service_disabled = NotificationService(
                 config_manager=config_disabled,

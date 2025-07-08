@@ -17,7 +17,7 @@ class TestConfigManager:
 
     def test_load_valid_config_file(self):
         """Test loading a valid config file"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_data = {
             "check_interval": 60,
             "headless": False,
@@ -35,7 +35,7 @@ class TestConfigManager:
 
     def test_invalid_json_handling(self):
         """Test handling of invalid JSON in config file"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         with patch("builtins.open", mock_open(read_data="invalid json content")):
             with patch("pathlib.Path.exists", return_value=True):
                 with pytest.raises(json.JSONDecodeError):
@@ -43,7 +43,7 @@ class TestConfigManager:
 
     def test_config_properties(self):
         """Test that config properties work correctly"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_data = {
             "check_interval": 45,
             "headless": True,
@@ -60,7 +60,7 @@ class TestConfigManager:
 
     def test_config_caching(self):
         """Test that config is cached after first load"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_data = {"check_interval": 100}
 
         with patch("builtins.open", mock_open(read_data=json.dumps(config_data))):
@@ -73,7 +73,7 @@ class TestConfigManager:
 
     def test_real_config_file_integration(self):
         """Test with actual config file from the project"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_path = Path("config/config.json")
 
         if config_path.exists():

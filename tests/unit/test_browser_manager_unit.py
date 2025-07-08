@@ -19,7 +19,7 @@ class TestBrowserManager:
     def browser_manager(self):
         """Create browser manager instance"""
         rate_limiter = RateLimiterService()
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         return BrowserManager(
             rate_limiter=rate_limiter,
             logger=logger,
@@ -268,7 +268,7 @@ class TestBrowserManager:
     def test_custom_rate_limiter_injection(self):
         """Test that custom rate limiter can be injected"""
         custom_rate_limiter = RateLimiterService()
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         browser_manager = BrowserManager(
             rate_limiter=custom_rate_limiter,
             logger=logger
@@ -279,7 +279,7 @@ class TestBrowserManager:
     def test_headless_mode_configuration(self):
         """Test headless mode configuration"""
         rate_limiter = RateLimiterService()
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         
         # Test headless mode
         headless_manager = BrowserManager(

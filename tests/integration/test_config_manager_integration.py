@@ -42,7 +42,7 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_loading_with_fixture(self, firebase_config_fixture):
         """Test Firebase config loading using captured fixture"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         # Create config manager with fixture enabled
         config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
@@ -53,7 +53,7 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_properties_dev_environment(self, firebase_config_fixture):
         """Test Firebase config properties in dev environment"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
         # Test properties
@@ -76,7 +76,7 @@ class TestConfigManagerIntegration:
 
     def test_firebase_config_properties_prod_environment(self, firebase_config_fixture):
         """Test Firebase config properties in prod environment"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="prod", logger=logger)
 
         # Test properties
@@ -107,7 +107,7 @@ class TestConfigManagerIntegration:
             "accounts": ["fallback_user"],
         }
 
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         with patch("builtins.open", mock_open(read_data=json.dumps(local_config))):
             with patch("pathlib.Path.exists", return_value=True):
                 config_manager = ConfigManager(mode=ConfigMode.FALLBACK, logger=logger)
@@ -119,7 +119,7 @@ class TestConfigManagerIntegration:
 
     def test_fallback_to_defaults_when_both_firebase_and_local_fail(self):
         """Test fallback to defaults when both Firebase and local config fail"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         # Mock local config file to not exist
         with patch("pathlib.Path.exists", return_value=False):
             config_manager = ConfigManager(mode=ConfigMode.FIXTURE, logger=logger)
@@ -139,7 +139,7 @@ class TestConfigManagerIntegration:
             "accounts": ["local_user"],
         }
 
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         with patch("builtins.open", mock_open(read_data=json.dumps(local_config))):
             with patch("pathlib.Path.exists", return_value=True):
                 config_manager = ConfigManager(mode=ConfigMode.LOCAL, logger=logger)
@@ -151,7 +151,7 @@ class TestConfigManagerIntegration:
 
     def test_firebase_manager_initialization(self, firebase_config_fixture):
         """Test Firebase manager initialization and caching"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         config_manager = ConfigManager(mode=ConfigMode.FIXTURE, environment="dev", logger=logger)
 
         # Config should be loaded and cached

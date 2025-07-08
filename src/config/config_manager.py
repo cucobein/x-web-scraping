@@ -8,7 +8,7 @@ import os
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from src.config.firebase_config_manager import FirebaseConfigManager
+from src.services.firebase_service import FirebaseService
 from src.services.logger_service import LoggerService
 from src.services.environment_service import EnvironmentService
 
@@ -31,20 +31,14 @@ class ConfigManager:
         environment: str = None,
         logger: Optional[LoggerService] = None,
         env_service: Optional[EnvironmentService] = None,
+        firebase_service: Optional[FirebaseService] = None,
     ):
         self.mode = mode
         self.env_service = env_service
         self.environment = environment or self._get_environment()
         self._config = None
-        self._firebase_manager = None
+        self._firebase_service = firebase_service
         self.logger = logger
-
-        # Firebase configuration
-        self.project_id = os.getenv("FIREBASE_PROJECT_ID", "web-scraper-e14ff")
-        self.service_account_path = os.getenv(
-            "FIREBASE_SERVICE_ACCOUNT_PATH",
-            "config/web-scraper-e14ff-firebase-adminsdk-fbsvc-2f32bfbd7b.json",
-        )
 
         # Load configuration immediately
         self._load()
@@ -88,16 +82,23 @@ class ConfigManager:
         try:
             return asyncio.run(self._load_from_firebase())
         except Exception as e:
-            self.logger.warning(
-                "Firebase config failed, falling back to local config",
-                {"error": str(e)},
-            )
+            if self.logger:
+                self.logger.warning(
+                    "Firebase config failed, falling back to local config",
+                    {"error": str(e)},
+                )
             return self._load_from_file()
 
-    async def _load_from_firebase(self) -> Dict[str, Any]:
-        """Async Firebase loading"""
-        await self._ensure_firebase_manager()
-        return await self._firebase_manager.load_config()
+    def _load_from_firebase(self) -> Dict[str, Any]:
+        """Load configuration from Firebase Remote Config"""
+        if not self._firebase_service:
+            raise Exception("Firebase service not provided")
+        
+        if not self._firebase_service.is_initialized():
+            if not self._firebase_service.initialize():
+                raise Exception("Failed to initialize Firebase service")
+
+        return self._firebase_service.load_config()
 
     def _load_from_fixture(self) -> Dict[str, Any]:
         """Load configuration from fixture file"""
@@ -136,15 +137,7 @@ class ConfigManager:
             )
             return self._load_from_file()
 
-    async def _ensure_firebase_manager(self):
-        """Ensure Firebase manager is initialized"""
-        if self._firebase_manager is None:
-            self._firebase_manager = FirebaseConfigManager(
-                self.project_id, 
-                self.service_account_path,
-                logger=self.logger,
-                env_service=self.env_service
-            )
+
 
     def _load_from_file(self) -> Dict[str, Any]:
         """Load configuration from JSON file"""
@@ -170,9 +163,9 @@ class ConfigManager:
         if self._config is None:
             return default
 
-        if self.mode == ConfigMode.FIREBASE and self._firebase_manager:
+        if self.mode == ConfigMode.FIREBASE and self._firebase_service:
             try:
-                return self._firebase_manager.get_value(key, self._config)
+                return self._firebase_service.get_config_value(key, self._config)
             except KeyError:
                 return default
         else:

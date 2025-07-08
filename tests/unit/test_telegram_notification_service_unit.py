@@ -16,7 +16,7 @@ class TestTelegramNotificationService:
     @pytest.fixture
     def telegram_service(self):
         """Create Telegram service instance"""
-        logger = LoggerService(firebase_logger=None)
+        logger = LoggerService()
         http_client = HttpClientService(timeout=5)
         return TelegramNotificationService(
             endpoint="https://api-com-notifications.mobzilla.com/api/Telegram/SendMessage",

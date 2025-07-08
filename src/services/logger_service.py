@@ -16,7 +16,6 @@ from queue import Queue
 from threading import Lock
 from typing import Any, Dict, Optional
 
-from src.services.firebase_log_service import FirebaseLogService
 from src.services.environment_service import EnvironmentService
 
 
@@ -33,7 +32,7 @@ class LogLevel(Enum):
 class LoggerService:
     """Logger service for application-wide logging"""
 
-    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, firebase_logger: Optional[FirebaseLogService] = None, environment_service: Optional[EnvironmentService] = None):
+    def __init__(self, log_file_path: str = "logs/app.log", max_file_size_mb: int = 10, backup_count: int = 5, json_output: bool = False, environment_service: Optional[EnvironmentService] = None):
         """
         Initialize logger service
 
@@ -42,7 +41,6 @@ class LoggerService:
             max_file_size_mb: Maximum log file size in MB before rotation
             backup_count: Number of backup files to keep
             json_output: Whether to output logs in JSON format for machine parsing
-            firebase_logger: Optional Firebase logging service
             environment_service: Optional environment service
         """
         self.log_file_path = log_file_path
@@ -55,9 +53,6 @@ class LoggerService:
         self._async_queue = Queue()
         self._queue_lock = Lock()
         self._async_worker_running = False
-
-        # Firebase logging setup
-        self._firebase_logger = firebase_logger
 
         # Ensure log directory exists
         self._ensure_log_directory()
@@ -261,19 +256,7 @@ class LoggerService:
             # Don't let file logging failures break the app
             print(f"⚠️ Failed to write to log file: {e}")
 
-    def _log_to_firebase(
-        self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
-        """Log message to Firebase Firestore."""
-        try:
-            # Use asyncio to run the async Firebase logging
-            if self._firebase_logger and self._firebase_logger.is_enabled():
-                asyncio.create_task(
-                    self._firebase_logger.log_entry(level, message, context)
-                )
-        except Exception as e:
-            # Don't let Firebase logging failures break the app
-            print(f"⚠️ Failed to log to Firebase: {e}")
+
 
     def log(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
@@ -292,8 +275,7 @@ class LoggerService:
         # Log to file
         self._log_to_file(level, message, context)
 
-        # Log to Firebase (if enabled)
-        self._log_to_firebase(level, message, context)
+
 
     def debug(self, message: str, context: Optional[Dict[str, Any]] = None):
         """Log debug message"""
@@ -506,39 +488,4 @@ class LoggerService:
 
         return decorator
 
-    async def upload_log_file(self, log_file_path: str = None) -> bool:
-        """
-        Upload current log file to Firebase Storage
 
-        Args:
-            log_file_path: Path to log file (defaults to current log file)
-
-        Returns:
-            True if successful, False otherwise
-        """
-        if log_file_path is None:
-            log_file_path = self.log_file_path
-
-        try:
-            return await self._firebase_logger.upload_log_file(log_file_path)
-        except Exception as e:
-            self.error(
-                "Failed to upload log file", {"error": str(e), "file": log_file_path}
-            )
-            return False
-
-    async def cleanup_old_firebase_logs(self, days_to_keep: int = 30) -> bool:
-        """
-        Clean up old log entries from Firebase Firestore
-
-        Args:
-            days_to_keep: Number of days to keep logs
-
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            return await self._firebase_logger.cleanup_old_logs(days_to_keep)
-        except Exception as e:
-            self.error("Failed to cleanup old Firebase logs", {"error": str(e)})
-            return False

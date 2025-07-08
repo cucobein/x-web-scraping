@@ -9,7 +9,7 @@ from src.config.config_manager import ConfigManager, ConfigMode
 from src.services import get_service_provider
 from src.services.environment_service import EnvironmentService
 from src.services.logger_service import LoggerService
-from src.services.firebase_log_service import FirebaseLogService
+from src.services.firebase_service import FirebaseService
 from src.services.rate_limiter_service import RateLimiterService
 from src.services.browser_manager import BrowserManager
 from src.repositories.tweet_repository import TweetRepository
@@ -31,26 +31,22 @@ def setup_services():
     # Core services
     provider.register_singleton(EnvironmentService, lambda: EnvironmentService())
     
-    # Create LoggerService first without FirebaseLogService
-    provider.register_singleton(LoggerService, lambda: LoggerService(
-        log_file_path="logs/app.log"
-    ))
-    
-    # Create FirebaseLogService with LoggerService
-    provider.register_singleton(FirebaseLogService, lambda: FirebaseLogService(
-        logger=provider.get(LoggerService),
+    # Create FirebaseService first (centralized Firebase management)
+    provider.register_singleton(FirebaseService, lambda: FirebaseService(
         env_service=provider.get(EnvironmentService)
     ))
     
-    # Update LoggerService to include FirebaseLogService
-    logger_service = provider.get(LoggerService)
-    firebase_logger = provider.get(FirebaseLogService)
-    logger_service._firebase_logger = firebase_logger
+    # Create LoggerService
+    provider.register_singleton(LoggerService, lambda: LoggerService(
+        log_file_path="logs/app.log",
+        environment_service=provider.get(EnvironmentService)
+    ))
     
     provider.register_singleton(ConfigManager, lambda: ConfigManager(
         mode=ConfigMode.FIREBASE,
         logger=provider.get(LoggerService),
-        env_service=provider.get(EnvironmentService)
+        env_service=provider.get(EnvironmentService),
+        firebase_service=provider.get(FirebaseService)
     ))
     
     provider.register_singleton(RateLimiterService, lambda: RateLimiterService())

@@ -121,13 +121,7 @@ class XMonitor:
         for username in accounts:
             await self.process_account(username)
 
-        # Upload log file to Firebase after cycle completion
-        try:
-            await self.logger.upload_log_file()
-        except Exception as e:
-            self.logger.warning(
-                "Failed to upload log file after monitoring cycle", {"error": str(e)}
-            )
+
 
     async def start(self):
         """Start the monitoring service"""

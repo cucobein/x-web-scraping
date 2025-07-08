@@ -14,7 +14,7 @@ class ServiceProvider:
     def __init__(self):
         self._singletons: Dict[type, Any] = {}
         self._factories: Dict[type, Callable] = {}
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
     
     def register_singleton(self, service_type: Type[T], factory: Callable[[], T]) -> None:
         """

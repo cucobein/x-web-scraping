@@ -26,7 +26,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_get_latest_tweet_timeout_error(self):
         """Test handling of timeout errors"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(page_timeout=5000, logger=logger)
 
         # Mock page with timeout error
@@ -42,7 +42,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_get_latest_tweet_no_tweets_found(self):
         """Test when no tweets are found"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(page_timeout=5000, logger=logger)
 
         # Mock page with no tweets
@@ -60,7 +60,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_extract_tweet_data_success(self):
         """Test successful tweet data extraction"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(logger=logger)
         mock_tweet = MagicMock()
 
@@ -106,7 +106,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_extract_tweet_data_fallback_content(self):
         """Test fallback to inner_text when tweetText not found"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(logger=logger)
         mock_tweet = MagicMock()
         mock_tweet.inner_text = AsyncMock(return_value="Fallback tweet content")
@@ -150,7 +150,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_extract_tweet_data_no_timestamp(self):
         """Test handling when timestamp is not found"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(logger=logger)
         mock_tweet = MagicMock()
         mock_tweet.inner_text = AsyncMock(return_value="Test tweet content")
@@ -197,7 +197,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_extract_tweet_data_no_url(self):
         """Test handling when URL is not found"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(logger=logger)
         mock_tweet = MagicMock()
         mock_tweet.inner_text = AsyncMock(return_value="Test tweet content")
@@ -241,7 +241,7 @@ class TestTwitterScraper:
     @pytest.mark.asyncio
     async def test_extract_tweet_data_relative_url(self):
         """Test handling of relative URLs"""
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         scraper = TwitterScraper(logger=logger)
         mock_tweet = MagicMock()
         mock_tweet.inner_text = AsyncMock(return_value="Test tweet content")

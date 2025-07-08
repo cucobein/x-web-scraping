@@ -33,7 +33,7 @@ class TestMonitorIntegration:
         provider = ServiceProvider()
         
         # Create test logger
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         provider.register_singleton(LoggerService, lambda: logger)
         
         # Create test config manager
@@ -85,7 +85,7 @@ class TestMonitorIntegration:
     async def browser_manager(self):
         """Create and start browser manager for testing"""
         rate_limiter = RateLimiterService()
-        logger = LoggerService(firebase_logger=None)  # Disable Firebase in tests
+        logger = LoggerService()  # Simple logger for tests
         manager = BrowserManager(
             rate_limiter=rate_limiter,
             logger=logger,
