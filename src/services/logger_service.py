@@ -122,7 +122,7 @@ class LoggerService:
 
         if context is not None:
             if not isinstance(context, dict):
-                context = {"context": str(context)}
+                context = {"context": str(context)}  # type: ignore[assignment]
             log_entry["context"] = context
 
         try:
@@ -314,23 +314,33 @@ class LoggerService:
         """
         self._queue_log_entry(level, message, context)
 
-    def debug_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
+    def debug_async(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Log debug message asynchronously"""
         self.log_async(LogLevel.DEBUG, message, context)
 
-    def info_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
+    def info_async(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Log info message asynchronously"""
         self.log_async(LogLevel.INFO, message, context)
 
-    def warning_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
+    def warning_async(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Log warning message asynchronously"""
         self.log_async(LogLevel.WARNING, message, context)
 
-    def error_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
+    def error_async(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Log error message asynchronously"""
         self.log_async(LogLevel.ERROR, message, context)
 
-    def critical_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
+    def critical_async(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> None:
         """Log critical message asynchronously"""
         self.log_async(LogLevel.CRITICAL, message, context)
 

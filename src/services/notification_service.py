@@ -18,7 +18,7 @@ class NotificationService:
         config_manager: ConfigManager,
         telegram_service: Optional[TelegramNotificationService] = None,
         logger: Optional[LoggerService] = None,
-    ):
+    ) -> None:
         """
         Initialize notification service
 
@@ -31,7 +31,7 @@ class NotificationService:
         self.logger = logger
         self.telegram_service = telegram_service
 
-    async def notify_new_tweet(self, tweet: Tweet):
+    async def notify_new_tweet(self, tweet: Tweet) -> None:
         """
         Notify about a new tweet
 
@@ -57,7 +57,7 @@ class NotificationService:
             except Exception as e:
                 self.logger.error("Telegram notification error", {"error": str(e)})
 
-    async def notify_error(self, username: str, error: str):
+    async def notify_error(self, username: str, error: str) -> None:
         """
         Notify about an error
 
@@ -67,7 +67,7 @@ class NotificationService:
         """
         self.logger.warning(f"Error with @{username}", {"error": error})
 
-    async def notify_status(self, message: str):
+    async def notify_status(self, message: str) -> None:
         """
         Notify about status updates
 

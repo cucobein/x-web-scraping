@@ -81,6 +81,7 @@ class TelegramNotificationService:
                 else:
                     # Final attempt failed, re-raise the exception
                     raise
+        return 500, {"error": "All retries failed"}  # type: ignore[unreachable]
 
     async def send_tweet_notification(self, tweet: Tweet) -> TelegramMessageResponse:
         """
@@ -149,14 +150,14 @@ class TelegramNotificationService:
 
         return message
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the HTTP client"""
         await self.http_client.close()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "TelegramNotificationService":
         """Async context manager entry"""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         """Async context manager exit"""
         await self.close()

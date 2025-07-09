@@ -90,7 +90,7 @@ class HttpClientService:
                             return response.status, response_data
 
             except asyncio.TimeoutError as e:
-                last_exception = TimeoutError(str(e))  # type: ignore[assignment]
+                last_exception = TimeoutError(str(e))
                 if attempt < self.max_retries:
                     delay = self.retry_delay * (2**attempt)
                     await asyncio.sleep(delay)
@@ -110,7 +110,7 @@ class HttpClientService:
         # If we get here, all retries failed
         if last_exception:
             raise last_exception
-        return 500, {"error": "All retries failed"}  # type: ignore[unreachable]
+        return 500, {"error": "All retries failed"}
 
     async def close(self) -> None:
         """Close the HTTP session"""
@@ -121,6 +121,6 @@ class HttpClientService:
         """Async context manager entry"""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore
         """Async context manager exit"""
         await self.close()

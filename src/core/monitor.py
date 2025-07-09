@@ -3,6 +3,7 @@ Core monitor that orchestrates all services
 """
 
 import asyncio
+from typing import Optional
 
 from src.config.config_manager import ConfigManager
 from src.repositories.tweet_repository import TweetRepository
@@ -16,7 +17,7 @@ from src.services.twitter_scraper import TwitterScraper
 class XMonitor:
     """Main monitor that orchestrates all services"""
 
-    def __init__(self, provider: ServiceProvider = None):
+    def __init__(self, provider: Optional[ServiceProvider] = None) -> None:
         """
         Initialize XMonitor with services from provider
 
@@ -110,7 +111,7 @@ class XMonitor:
             # Close context instead of returning to pool
             await context.close()
 
-    async def run_monitoring_cycle(self):
+    async def run_monitoring_cycle(self) -> None:
         """Run one complete monitoring cycle"""
         # Process all accounts in each cycle - no more batching
         accounts = self.config_manager.accounts
@@ -122,7 +123,7 @@ class XMonitor:
         for username in accounts:
             await self.process_account(username)
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the monitoring service"""
         if self.is_running:
             return
@@ -148,7 +149,7 @@ class XMonitor:
         finally:
             await self.stop()
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the monitoring service"""
         self.is_running = False
         await self.browser_manager.stop()

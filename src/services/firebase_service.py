@@ -133,6 +133,7 @@ class FirebaseService:
 
     def _get_fallback_config(self) -> Dict[str, Any]:
         """Get hardcoded fallback configuration"""
+        # type: ignore[attr-defined]
         return {
             "monitoring_check_interval_dev": "30",
             "monitoring_check_interval_prod": "60",
