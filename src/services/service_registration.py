@@ -5,6 +5,8 @@ This module serves as the composition root for the application.
 All service registration happens here, following the ASP.NET Core pattern.
 """
 
+from typing import Any
+
 from src.config.config_manager import ConfigManager, ConfigMode
 from src.repositories.tweet_repository import TweetRepository
 from src.services import get_service_provider
@@ -17,7 +19,6 @@ from src.services.notification_service import NotificationService
 from src.services.rate_limiter_service import RateLimiterService
 from src.services.telegram_notification_service import TelegramNotificationService
 from src.services.twitter_scraper import TwitterScraper
-from typing import Any
 
 
 def setup_services() -> Any:
