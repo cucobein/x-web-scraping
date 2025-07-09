@@ -73,7 +73,7 @@ class BrowserManager:
             with open(cookie_file, "r") as f:
                 cookie_data = json.load(f)
 
-            return cookie_data  # type: ignore[no-any-return]
+            return cookie_data
 
         except Exception as e:
             if self.logger:
@@ -150,7 +150,7 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"  # type: ignore[index]
+            context_settings["extra_http_headers"]["DNT"] = "1"
 
         self.context = await self.browser.new_context(**context_settings)
 
@@ -197,7 +197,7 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"  # type: ignore[index]
+            context_settings["extra_http_headers"]["DNT"] = "1"
 
         context = await self.browser.new_context(**context_settings)
 

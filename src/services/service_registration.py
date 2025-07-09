@@ -17,9 +17,10 @@ from src.services.notification_service import NotificationService
 from src.services.rate_limiter_service import RateLimiterService
 from src.services.telegram_notification_service import TelegramNotificationService
 from src.services.twitter_scraper import TwitterScraper
+from typing import Any
 
 
-def setup_services():
+def setup_services() -> Any:
     """
     Setup all services - Composition Root
 
