@@ -2,7 +2,7 @@
 Twitter scraping service
 """
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from playwright.async_api import Page
 
@@ -231,7 +231,7 @@ class TwitterScraper:
         return None
 
     async def _extract_tweet_data(
-        self, tweet_element
+        self, tweet_element: Any
     ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract content, timestamp, and URL from tweet element"""
         try:

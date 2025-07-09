@@ -208,13 +208,13 @@ class BrowserManager:
 
         return context
 
-    async def clear_cache(self):
+    async def clear_cache(self) -> None:
         """Clear browser cache and cookies"""
         if self.context:
             # Clear storage (localStorage, sessionStorage)
             await self.context.clear_permissions()
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Clean up browser resources"""
         if self.context:
             await self.context.close()

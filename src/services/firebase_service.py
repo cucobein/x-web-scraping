@@ -14,7 +14,7 @@ from src.services.environment_service import EnvironmentService
 class FirebaseService:
     """Firebase service for remote configuration only"""
 
-    def __init__(self, env_service: Optional[EnvironmentService] = None):
+    def __init__(self, env_service: Optional[EnvironmentService] = None) -> None:
         """
         Initialize Firebase service
 
@@ -133,7 +133,6 @@ class FirebaseService:
 
     def _get_fallback_config(self) -> Dict[str, Any]:
         """Get hardcoded fallback configuration"""
-        # type: ignore[attr-defined]
         return {
             "monitoring_check_interval_dev": "30",
             "monitoring_check_interval_prod": "60",
