@@ -92,7 +92,8 @@ class TwitterScraper:
         except Exception as e:
             if self.logger:
                 self.logger.error(
-                    f"Error extracting tweet from HTML for @{username}", {"error": str(e)}
+                    f"Error extracting tweet from HTML for @{username}",
+                    {"error": str(e)},
                 )
             return None
 

@@ -73,12 +73,13 @@ class BrowserManager:
             with open(cookie_file, "r") as f:
                 cookie_data = json.load(f)
 
-            return cookie_data
+            return cookie_data  # type: ignore[no-any-return]
 
         except Exception as e:
-            self.logger.error(
-                f"Error loading cookies from {file_path}", {"error": str(e)}
-            )
+            if self.logger:
+                self.logger.error(
+                    f"Error loading cookies from {file_path}", {"error": str(e)}
+                )
             return []
 
     def get_domain_cookies(self, domain: str) -> List[dict]:
@@ -118,6 +119,8 @@ class BrowserManager:
                 "--disable-ipc-flooding-protection",
             ]
 
+        if self.playwright is None:
+            raise RuntimeError("Playwright not initialized")
         self.browser = await self.playwright.chromium.launch(
             headless=self.headless, args=browser_args
         )
@@ -147,7 +150,7 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"
+            context_settings["extra_http_headers"]["DNT"] = "1"  # type: ignore[index]
 
         self.context = await self.browser.new_context(**context_settings)
 
@@ -194,7 +197,7 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"
+            context_settings["extra_http_headers"]["DNT"] = "1"  # type: ignore[index]
 
         context = await self.browser.new_context(**context_settings)
 
@@ -202,9 +205,11 @@ class BrowserManager:
         cookies = self.get_domain_cookies(domain)
         if cookies:
             await context.add_cookies(cookies)
-            self.logger.info(f"Loaded cookies for {domain}")
+            if self.logger:
+                self.logger.info(f"Loaded cookies for {domain}")
         else:
-            self.logger.warning(f"No cookies found for {domain}")
+            if self.logger:
+                self.logger.warning(f"No cookies found for {domain}")
 
         return context
 
