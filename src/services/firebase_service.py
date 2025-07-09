@@ -83,7 +83,9 @@ class FirebaseService:
 
         import asyncio
 
-        async def _load_config_async():
+        async def _load_config_async() -> Dict[str, Any]:
+            if self._remote_config_client is None:
+                raise Exception("Remote config client not initialized")
             template = await self._remote_config_client.get_server_template()
             server_config = template.evaluate()
             # Extract all config values as a plain dict

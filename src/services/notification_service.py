@@ -42,7 +42,11 @@ class NotificationService:
         if self.logger:
             self.logger.info(
                 f"NEW POST: @{tweet.username}",
-                {"time": tweet.timestamp, "content": tweet.content[:200], "url": tweet.url},
+                {
+                    "time": tweet.timestamp,
+                    "content": tweet.content[:200],
+                    "url": tweet.url,
+                },
             )
 
         # Telegram notification (if configured)

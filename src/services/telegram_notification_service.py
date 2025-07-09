@@ -67,14 +67,15 @@ class TelegramNotificationService:
                 if attempt < max_attempts:
                     # Calculate exponential backoff delay
                     delay = min(2 ** (attempt - 1), 10)  # Max 10 seconds
-                    self.logger.warning(
-                        f"Telegram API call failed (attempt {attempt}/{max_attempts})",
-                        {
-                            "error": str(e),
-                            "retry_delay": delay,
-                            "endpoint": self.endpoint,
-                        },
-                    )
+                    if self.logger:
+                        self.logger.warning(
+                            f"Telegram API call failed (attempt {attempt}/{max_attempts})",
+                            {
+                                "error": str(e),
+                                "retry_delay": delay,
+                                "endpoint": self.endpoint,
+                            },
+                        )
                     import asyncio
 
                     await asyncio.sleep(delay)
@@ -118,14 +119,15 @@ class TelegramNotificationService:
 
         except Exception as e:
             # Handle network/connection errors (after all retries exhausted)
-            self.logger.error(
-                "All retry attempts failed for tweet notification",
-                {
-                    "error": str(e),
-                    "tweet_username": tweet.username,
-                    "tweet_url": tweet.url,
-                },
-            )
+            if self.logger:
+                self.logger.error(
+                    "All retry attempts failed for tweet notification",
+                    {
+                        "error": str(e),
+                        "tweet_username": tweet.username,
+                        "tweet_url": tweet.url,
+                    },
+                )
             return TelegramMessageResponse.from_error(0, str(e))
 
     def _format_tweet_message(self, tweet: Tweet) -> str:

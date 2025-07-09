@@ -60,7 +60,7 @@ class HttpClientService:
         request_headers = headers or {}
 
         # Retry logic
-        last_exception = None
+        last_exception: Optional[Exception] = None
         for attempt in range(self.max_retries + 1):
             try:
                 async with session.post(

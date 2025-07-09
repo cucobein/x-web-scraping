@@ -60,7 +60,8 @@ class TwitterScraper:
             return await self._extract_latest_tweet_from_page(page, username)
 
         except Exception as e:
-            self.logger.error(f"Error with @{username}", {"error": str(e)})
+            if self.logger:
+                self.logger.error(f"Error with @{username}", {"error": str(e)})
             return None
 
     async def get_latest_tweet_from_html(
@@ -89,9 +90,10 @@ class TwitterScraper:
             return await self._extract_latest_tweet_from_page_fast(page, username)
 
         except Exception as e:
-            self.logger.error(
-                f"Error extracting tweet from HTML for @{username}", {"error": str(e)}
-            )
+            if self.logger:
+                self.logger.error(
+                    f"Error extracting tweet from HTML for @{username}", {"error": str(e)}
+                )
             return None
 
     async def _extract_latest_tweet_from_page(
@@ -126,11 +128,13 @@ class TwitterScraper:
                 continue
 
         if not tweets:
-            self.logger.info(f"No tweets found for @{username}")
+            if self.logger:
+                self.logger.info(f"No tweets found for @{username}")
             return None
 
         count = await tweets.count()
-        self.logger.info(f"Found {count} tweets for @{username}")
+        if self.logger:
+            self.logger.info(f"Found {count} tweets for @{username}")
 
         for i in range(count):
             tweet = tweets.nth(i)
@@ -152,7 +156,8 @@ class TwitterScraper:
                         username=username, content=content, timestamp=timestamp, url=url
                     )
             except Exception as e:
-                self.logger.error("Error extracting tweet data", {"error": str(e)})
+                if self.logger:
+                    self.logger.error("Error extracting tweet data", {"error": str(e)})
                 continue
 
         return None
@@ -199,11 +204,13 @@ class TwitterScraper:
                 continue
 
         if not tweets:
-            self.logger.info(f"No tweets found for @{username}")
+            if self.logger:
+                self.logger.info(f"No tweets found for @{username}")
             return None
 
         count = await tweets.count()
-        self.logger.info(f"Found {count} tweets for @{username}")
+        if self.logger:
+            self.logger.info(f"Found {count} tweets for @{username}")
 
         for i in range(count):
             tweet = tweets.nth(i)
@@ -225,7 +232,8 @@ class TwitterScraper:
                         username=username, content=content, timestamp=timestamp, url=url
                     )
             except Exception as e:
-                self.logger.error("Error extracting tweet data", {"error": str(e)})
+                if self.logger:
+                    self.logger.error("Error extracting tweet data", {"error": str(e)})
                 continue
 
         return None
@@ -277,10 +285,12 @@ class TwitterScraper:
                     if url and not url.startswith("http"):
                         url = f"https://x.com{url}"
             except Exception as e:
-                self.logger.error("Error extracting URL", {"error": str(e)})
+                if self.logger:
+                    self.logger.error("Error extracting URL", {"error": str(e)})
 
             return (content.strip(), timestamp, url)
 
         except Exception as e:
-            self.logger.error("Error extracting tweet data", {"error": str(e)})
+            if self.logger:
+                self.logger.error("Error extracting tweet data", {"error": str(e)})
             return None, None, None
