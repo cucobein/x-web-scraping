@@ -15,11 +15,11 @@ class EnvironmentService:
     """Service for providing environment information"""
 
     @staticmethod
-    def get_default_environment() -> str:
+    def get_default_environment() -> EnvironmentType:
         """Get the default environment value"""
-        return os.getenv("ENVIRONMENT", "dev")
+        return os.getenv("ENVIRONMENT", "dev")  # type: ignore[return-value]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize with current environment"""
         self._environment = self.get_default_environment()
 

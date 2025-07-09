@@ -79,7 +79,7 @@ class RateLimiterService:
         """Get a random user agent for rotation"""
         return random.choice(self.user_agents)
 
-    def get_random_delay(self, domain: str = None) -> float:
+    def get_random_delay(self, domain: Optional[str] = None) -> float:
         """
         Get a random delay between requests to simulate human behavior
 
@@ -200,7 +200,7 @@ class RateLimiterService:
                 "min_delay_seconds": config.min_delay_seconds,
                 "max_delay_seconds": config.max_delay_seconds,
                 "backoff_multiplier": config.backoff_multiplier,
-            },
+            },  # type: ignore[dict-item]
         }
 
     def reset_domain(self, domain: str) -> None:

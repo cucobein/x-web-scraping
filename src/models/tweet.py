@@ -15,7 +15,7 @@ class Tweet:
     timestamp: str
     url: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate tweet data"""
         if not self.username:
             raise ValueError("Username cannot be empty")

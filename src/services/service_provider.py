@@ -11,7 +11,7 @@ T = TypeVar("T")
 class ServiceProvider:
     """Thread-safe service provider for dependency injection"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._singletons: Dict[type, Any] = {}
         self._factories: Dict[type, Callable] = {}
         self._lock = threading.RLock()
@@ -49,7 +49,7 @@ class ServiceProvider:
                             f"Service type {service_type.__name__} not registered"
                         )
                     self._singletons[service_type] = self._factories[service_type]()
-        return self._singletons[service_type]
+        return self._singletons[service_type]  # type: ignore[no-any-return]
 
     def create_new(self, service_type: Type[T]) -> T:
         """
@@ -67,7 +67,7 @@ class ServiceProvider:
         if service_type not in self._factories:
             raise KeyError(f"Service type {service_type.__name__} not registered")
         with self._lock:  # Thread-safe factory access
-            return self._factories[service_type]()
+            return self._factories[service_type]()  # type: ignore[no-any-return]
 
     def is_registered(self, service_type: Type[T]) -> bool:
         """

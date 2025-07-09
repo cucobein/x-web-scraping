@@ -24,8 +24,10 @@ class TestServiceProvider:
 
     def test_register_singleton(self):
         """Test registering a singleton service"""
+
         # Arrange
-        factory = lambda: ServiceProviderTest("test_value")
+        def factory():
+            return ServiceProviderTest("test_value")
 
         # Act
         self.provider.register_singleton(ServiceProviderTest, factory)
@@ -36,8 +38,11 @@ class TestServiceProvider:
 
     def test_get_singleton_returns_same_instance(self):
         """Test that get() returns the same instance for singletons"""
+
         # Arrange
-        factory = lambda: ServiceProviderTest("test_value")
+        def factory():
+            return ServiceProviderTest("test_value")
+
         self.provider.register_singleton(ServiceProviderTest, factory)
 
         # Act
@@ -50,8 +55,11 @@ class TestServiceProvider:
 
     def test_create_new_returns_different_instances(self):
         """Test that create_new() returns different instances"""
+
         # Arrange
-        factory = lambda: ServiceProviderTest("test_value")
+        def factory():
+            return ServiceProviderTest("test_value")
+
         self.provider.register_singleton(ServiceProviderTest, factory)
 
         # Act
@@ -77,8 +85,10 @@ class TestServiceProvider:
 
     def test_is_registered(self):
         """Test is_registered method"""
+
         # Arrange
-        factory = lambda: ServiceProviderTest()
+        def factory():
+            return ServiceProviderTest()
 
         # Act & Assert
         assert not self.provider.is_registered(ServiceProviderTest)
@@ -88,8 +98,11 @@ class TestServiceProvider:
 
     def test_clear_removes_all_services(self):
         """Test that clear() removes all registered services"""
+
         # Arrange
-        factory = lambda: ServiceProviderTest()
+        def factory():
+            return ServiceProviderTest()
+
         self.provider.register_singleton(ServiceProviderTest, factory)
 
         # Act
@@ -172,8 +185,14 @@ class TestServiceProvider:
             def __init__(self):
                 self.name = "B"
 
-        self.provider.register_singleton(ServiceA, lambda: ServiceA())
-        self.provider.register_singleton(ServiceB, lambda: ServiceB())
+        def factory_a():
+            return ServiceA()
+
+        def factory_b():
+            return ServiceB()
+
+        self.provider.register_singleton(ServiceA, factory_a)
+        self.provider.register_singleton(ServiceB, factory_b)
 
         # Act
         service_a = self.provider.get(ServiceA)

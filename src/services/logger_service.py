@@ -57,7 +57,7 @@ class LoggerService:
         self.env_service = environment_service
 
         # Async logging setup
-        self._async_queue = Queue()
+        self._async_queue: Queue = Queue()
         self._queue_lock = Lock()
         self._async_worker_running = False
 
@@ -69,7 +69,7 @@ class LoggerService:
             return self.env_service.get_environment()
         return EnvironmentService.get_default_environment()
 
-    def _ensure_log_directory(self):
+    def _ensure_log_directory(self) -> None:
         """Ensure log directory exists"""
         log_dir = os.path.dirname(self.log_file_path)
         if log_dir and not os.path.exists(log_dir):
@@ -81,7 +81,7 @@ class LoggerService:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return f"{base}.{timestamp}{ext}"
 
-    def _rotate_log_file(self):
+    def _rotate_log_file(self) -> None:
         """Rotate the log file with a timestamped backup, keep only backup_count backups."""
         with self._queue_lock:
             if os.path.exists(self.log_file_path):
@@ -98,7 +98,7 @@ class LoggerService:
                         except Exception as e:
                             print(f"⚠️ Failed to remove old log backup: {e}")
 
-    def _check_rotation(self):
+    def _check_rotation(self) -> None:
         """Check if log file needs rotation (runtime, before every write)."""
         if os.path.exists(self.log_file_path):
             size_mb = os.path.getsize(self.log_file_path) / (1024 * 1024)
@@ -144,7 +144,7 @@ class LoggerService:
                 default=str,
             )
 
-    def _start_async_worker(self):
+    def _start_async_worker(self) -> None:
         """Start the async worker if not already running"""
         with self._queue_lock:
             if not self._async_worker_running:
@@ -157,7 +157,7 @@ class LoggerService:
                 )
                 worker_thread.start()
 
-    def _async_worker_loop(self):
+    def _async_worker_loop(self) -> None:
         """Background worker loop to process async log messages"""
         while self._async_worker_running:
             try:
@@ -179,7 +179,7 @@ class LoggerService:
 
     def _queue_log_entry(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
+    ) -> None:
         """Queue a log entry for async processing"""
         try:
             self._start_async_worker()
@@ -218,7 +218,7 @@ class LoggerService:
 
     def _log_to_console(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
+    ) -> None:
         """Log message to console with appropriate formatting"""
         if self.json_output:
             # JSON format for machine parsing
@@ -244,7 +244,7 @@ class LoggerService:
 
     def _log_to_file(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
+    ) -> None:
         """Log message to file, with runtime rotation."""
         try:
             self._check_rotation()
@@ -265,7 +265,7 @@ class LoggerService:
 
     def log(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
+    ) -> None:
         """
         Log message with specified level
 
@@ -280,30 +280,30 @@ class LoggerService:
         # Log to file
         self._log_to_file(level, message, context)
 
-    def debug(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def debug(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log debug message"""
         self.log(LogLevel.DEBUG, message, context)
 
-    def info(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def info(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log info message"""
         self.log(LogLevel.INFO, message, context)
 
-    def warning(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def warning(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log warning message"""
         self.log(LogLevel.WARNING, message, context)
 
-    def error(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def error(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log error message"""
         self.log(LogLevel.ERROR, message, context)
 
-    def critical(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def critical(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log critical message"""
         self.log(LogLevel.CRITICAL, message, context)
 
     # Async logging methods
     def log_async(
         self, level: LogLevel, message: str, context: Optional[Dict[str, Any]] = None
-    ):
+    ) -> None:
         """
         Log message asynchronously with specified level
 
@@ -314,23 +314,23 @@ class LoggerService:
         """
         self._queue_log_entry(level, message, context)
 
-    def debug_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def debug_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log debug message asynchronously"""
         self.log_async(LogLevel.DEBUG, message, context)
 
-    def info_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def info_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log info message asynchronously"""
         self.log_async(LogLevel.INFO, message, context)
 
-    def warning_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def warning_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log warning message asynchronously"""
         self.log_async(LogLevel.WARNING, message, context)
 
-    def error_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def error_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log error message asynchronously"""
         self.log_async(LogLevel.ERROR, message, context)
 
-    def critical_async(self, message: str, context: Optional[Dict[str, Any]] = None):
+    def critical_async(self, message: str, context: Optional[Dict[str, Any]] = None) -> None:
         """Log critical message asynchronously"""
         self.log_async(LogLevel.CRITICAL, message, context)
 
@@ -339,7 +339,7 @@ class LoggerService:
         message: str,
         exception: Exception,
         context: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> None:
         """Log exception with stack trace"""
         # Format the full error message with stack trace
         timestamp = self._get_timestamp()
@@ -397,7 +397,7 @@ class LoggerService:
         message: str,
         exception: Exception,
         context: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> None:
         """Log exception asynchronously with stack trace"""
         # Ensure context is a dict
         if context is not None and not isinstance(context, dict):
@@ -412,7 +412,7 @@ class LoggerService:
     @contextmanager
     def timing(
         self, operation_name: str, context: Optional[Dict[str, Any]] = None
-    ) -> AbstractContextManager:
+    ) -> AbstractContextManager[Any, Optional[bool]]:  # type: ignore[arg-type]
         """
         Context manager for timing a code block.
         Usage:
@@ -443,11 +443,11 @@ class LoggerService:
             def my_func(...): ...
         """
 
-        def decorator(func):
+        def decorator(func):  # type: ignore
             if asyncio.iscoroutinefunction(func):
 
                 @functools.wraps(func)
-                async def async_wrapper(*args, **kwargs):
+                async def async_wrapper(*args, **kwargs):  # type: ignore
                     start = time.perf_counter()
                     self.info(f"[Timing] Started: {operation_name}", context)
                     try:
@@ -469,7 +469,7 @@ class LoggerService:
             else:
 
                 @functools.wraps(func)
-                def sync_wrapper(*args, **kwargs):
+                def sync_wrapper(*args, **kwargs):  # type: ignore
                     start = time.perf_counter()
                     self.info(f"[Timing] Started: {operation_name}", context)
                     try:

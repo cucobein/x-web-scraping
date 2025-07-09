@@ -10,7 +10,7 @@ from src.models.tweet import Tweet
 class TweetRepository:
     """Manages tweet data persistence"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._last_tweets: Dict[str, str] = {}
 
     def get_last_tweet_id(self, username: str) -> Optional[str]:
@@ -25,7 +25,7 @@ class TweetRepository:
         """
         return self._last_tweets.get(username)
 
-    def save_last_tweet(self, username: str, tweet: Tweet):
+    def save_last_tweet(self, username: str, tweet: Tweet) -> None:
         """
         Save the last tweet for a username
 
@@ -51,10 +51,10 @@ class TweetRepository:
             return True
         return tweet.unique_id != last_id
 
-    def get_all_tracked_users(self) -> list:
+    def get_all_tracked_users(self) -> list[str]:
         """Get list of all tracked usernames"""
         return list(self._last_tweets.keys())
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all stored tweet data"""
         self._last_tweets.clear()
