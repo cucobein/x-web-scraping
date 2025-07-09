@@ -110,4 +110,4 @@ def setup_services() -> None:
         ),
     )
 
-    # return provider  # type: ignore[return-value]
+    return provider
