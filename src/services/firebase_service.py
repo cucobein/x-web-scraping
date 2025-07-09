@@ -108,7 +108,7 @@ class FirebaseService:
             return loop.run_until_complete(_load_config_async())
 
         except Exception as e:
-            raise Exception(f"Failed to load config from Firebase: {str(e)}")
+            raise Exception(f"Failed to load config from Firebase: {str(e)}")  # type: ignore[unreachable]
 
     def get_config_value(self, key: str, config: Dict[str, Any]) -> Any:
         """

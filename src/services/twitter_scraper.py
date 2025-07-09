@@ -27,7 +27,7 @@ class TwitterScraper:
         self.logger = logger
 
     async def get_latest_tweet(
-        self, page: Page, username: str, browser_manager=None
+        self, page: Page, username: str, browser_manager: Optional[Any] = None
     ) -> Optional[Tweet]:
         """
         Get the latest tweet from a user's profile

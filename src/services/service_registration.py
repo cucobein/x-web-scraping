@@ -19,7 +19,7 @@ from src.services.telegram_notification_service import TelegramNotificationServi
 from src.services.twitter_scraper import TwitterScraper
 
 
-def setup_services() -> None:
+def setup_services():
     """
     Setup all services - Composition Root
 
