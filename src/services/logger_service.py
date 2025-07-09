@@ -9,12 +9,12 @@ import json
 import os
 import time
 import traceback
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import contextmanager
 from datetime import datetime
 from enum import Enum
 from queue import Queue
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Generator, Optional
 
 from src.services.environment_service import EnvironmentService
 
@@ -122,8 +122,10 @@ class LoggerService:
 
         if context is not None:
             if not isinstance(context, dict):
-                context = {"context": str(context)}  # type: ignore[assignment]
-            log_entry["context"] = context
+                context_dict: Dict[str, Any] = {"context": str(context)}
+                log_entry["context"] = context_dict
+            else:
+                log_entry["context"] = context  # type: ignore[assignment]
 
         try:
             return json.dumps(log_entry, default=str)
@@ -422,7 +424,7 @@ class LoggerService:
     @contextmanager
     def timing(
         self, operation_name: str, context: Optional[Dict[str, Any]] = None
-    ) -> AbstractContextManager[Any, Optional[bool]]:  # type: ignore[arg-type]
+    ) -> Generator[None, None, None]:
         """
         Context manager for timing a code block.
         Usage:
@@ -445,7 +447,9 @@ class LoggerService:
                 timing_context,
             )
 
-    def timeit(self, operation_name: str, context: Optional[Dict[str, Any]] = None):
+    def timeit(
+        self, operation_name: str, context: Optional[Dict[str, Any]] = None
+    ) -> Any:
         """
         Decorator for timing a function (sync or async).
         Usage:
@@ -453,11 +457,11 @@ class LoggerService:
             def my_func(...): ...
         """
 
-        def decorator(func):  # type: ignore
+        def decorator(func: Callable[..., Any]) -> Any:
             if asyncio.iscoroutinefunction(func):
 
                 @functools.wraps(func)
-                async def async_wrapper(*args, **kwargs):  # type: ignore
+                async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                     start = time.perf_counter()
                     self.info(f"[Timing] Started: {operation_name}", context)
                     try:
@@ -479,7 +483,7 @@ class LoggerService:
             else:
 
                 @functools.wraps(func)
-                def sync_wrapper(*args, **kwargs):  # type: ignore
+                def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                     start = time.perf_counter()
                     self.info(f"[Timing] Started: {operation_name}", context)
                     try:

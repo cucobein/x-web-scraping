@@ -4,7 +4,7 @@ Configuration management for X Feed Monitor with Firebase Remote Config support
 
 import json
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from src.services.environment_service import EnvironmentService
 from src.services.firebase_service import FirebaseService
@@ -110,7 +110,7 @@ class ConfigManager:
                 config = json.load(f)
             if self.logger:
                 self.logger.info(f"Config loaded from fixture: {fixture_path}")
-            return config
+            return cast(Dict[str, Any], config)
         except FileNotFoundError:
             if self.logger:
                 self.logger.warning(
@@ -130,7 +130,7 @@ class ConfigManager:
                 config = json.load(f)
             if self.logger:
                 self.logger.info(f"Config loaded from fallback fixture: {fixture_path}")
-            return config
+            return cast(Dict[str, Any], config)
         except FileNotFoundError:
             if self.logger:
                 self.logger.warning(
@@ -153,7 +153,7 @@ class ConfigManager:
                 config = json.load(f)
             if self.logger:
                 self.logger.info(f"Config loaded from {config_path}")
-            return config
+            return cast(Dict[str, Any], config)
         except FileNotFoundError:
             if self.logger:
                 self.logger.warning(

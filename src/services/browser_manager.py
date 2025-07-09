@@ -4,7 +4,7 @@ Browser management service with anti-detection features
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from playwright.async_api import Browser, BrowserContext, async_playwright
 
@@ -72,8 +72,7 @@ class BrowserManager:
 
             with open(cookie_file, "r") as f:
                 cookie_data = json.load(f)
-
-            return cookie_data
+            return cast(List[dict], cookie_data)
 
         except Exception as e:
             if self.logger:
@@ -150,7 +149,8 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"
+            extra_headers = cast(Dict[str, Any], context_settings["extra_http_headers"])
+            extra_headers["DNT"] = "1"
 
         self.context = await self.browser.new_context(**context_settings)
 
@@ -197,7 +197,8 @@ class BrowserManager:
                     "ignore_https_errors": True,
                 }
             )
-            context_settings["extra_http_headers"]["DNT"] = "1"
+            extra_headers = cast(Dict[str, Any], context_settings["extra_http_headers"])
+            extra_headers["DNT"] = "1"
 
         context = await self.browser.new_context(**context_settings)
 
