@@ -39,23 +39,27 @@ class NotificationService:
             tweet: The new tweet to notify about
         """
         # Console notification (always show)
-        self.logger.info(
-            f"NEW POST: @{tweet.username}",
-            {"time": tweet.timestamp, "content": tweet.content[:200], "url": tweet.url},
-        )
+        if self.logger:
+            self.logger.info(
+                f"NEW POST: @{tweet.username}",
+                {"time": tweet.timestamp, "content": tweet.content[:200], "url": tweet.url},
+            )
 
         # Telegram notification (if configured)
         if self.telegram_service:
             try:
                 response = await self.telegram_service.send_tweet_notification(tweet)
                 if response.success:
-                    self.logger.info("Telegram notification sent successfully")
+                    if self.logger:
+                        self.logger.info("Telegram notification sent successfully")
                 else:
-                    self.logger.warning(
-                        "Telegram notification failed", {"error": response.error}
-                    )
+                    if self.logger:
+                        self.logger.warning(
+                            "Telegram notification failed", {"error": response.error}
+                        )
             except Exception as e:
-                self.logger.error("Telegram notification error", {"error": str(e)})
+                if self.logger:
+                    self.logger.error("Telegram notification error", {"error": str(e)})
 
     async def notify_error(self, username: str, error: str) -> None:
         """
@@ -65,7 +69,8 @@ class NotificationService:
             username: Username that caused the error
             error: Error message
         """
-        self.logger.warning(f"Error with @{username}", {"error": error})
+        if self.logger:
+            self.logger.warning(f"Error with @{username}", {"error": error})
 
     async def notify_status(self, message: str) -> None:
         """
@@ -74,4 +79,5 @@ class NotificationService:
         Args:
             message: Status message
         """
-        self.logger.info(message)
+        if self.logger:
+            self.logger.info(message)

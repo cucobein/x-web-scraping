@@ -3,7 +3,6 @@ Integration tests for full monitoring workflow - Real World Scenarios
 """
 
 import json
-from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -3,7 +3,6 @@ Integration tests for TwitterScraper using real HTML fixtures
 """
 
 from pathlib import Path
-from typing import Any
 
 import pytest
 import pytest_asyncio
